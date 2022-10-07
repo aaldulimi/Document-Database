@@ -37,4 +37,17 @@ class DocumentDB():
                     return re.findall("[^/]*", key)[0]
 
 
+    def search(self, field, value):
+        doc_dict = {}
+        doc_id = self.get_id(field, value)
 
+        if doc_id:
+            for key in self.iterate_keys():
+                primary_key = re.findall("[^/]*", key)[0]
+                
+                if primary_key == doc_id:
+                    column_name = re.findall("[^/]*", key)[2]
+                    doc_dict[column_name] = self.get(key)
+
+    
+        return doc_dict
