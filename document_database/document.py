@@ -3,5 +3,7 @@ import dataclasses
 
 @dataclasses.dataclass
 class Document:
+    id: int  
     title: str
-    body: str 
+    author: str
+    body: str
