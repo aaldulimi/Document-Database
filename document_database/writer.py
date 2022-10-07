@@ -1,11 +1,11 @@
 from rocksdict import Rdict 
-
+import re
 
 
 class DocumentDB():
     def __init__(self, path: str = "database/"):
         self.db = Rdict(path)
-
+        
     def insert(self, document, primary_key = None):
         # encoding: primary_key/column_name -> value 
 
@@ -22,3 +22,19 @@ class DocumentDB():
     
     def get(self, key):
         return self.db[key]
+
+    
+    def iterate_keys(self):
+        for key in self.db.keys():
+            yield key
+
+    def get_id(self, field, value):
+        for key in self.iterate_keys():
+            key_column = re.findall("[^/]*", key)[2]
+
+            if field == key_column:
+                if value == self.get(key):
+                    return re.findall("[^/]*", key)[0]
+
+
+
