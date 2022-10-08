@@ -4,10 +4,8 @@ from document import Document
 
 if __name__ == "__main__":
     db = DocumentDB("database/")
-    
-    for key in db.iterate_keys():
-        print(key)
 
-    # return document by searching for a specific field value 
+    # return all documents that match an exact value in their field 
     result = db.search(field="author", value="Julie Turkewitz")
+    
     print(result)
