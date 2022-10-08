@@ -65,10 +65,28 @@ class DocumentDB():
                 if len(all_ids) == max_count:
                     return all_ids
         
-
+        return all_ids
 
     def _contains(self, field, value):
-        pass
+        results = []
+        doc_ids = self.get_id_contains(field, value)
+
+        if doc_ids:
+            for doc_id in doc_ids:
+                doc_dict = {}
+                doc_dict["id"] = doc_id
+                
+                for key in self.iterate_keys():
+                    search_doc_id = re.findall("[^/]*", key)[0]
+
+                    if search_doc_id == doc_id:
+                        column_name = re.findall("[^/]*", key)[2]
+                        doc_dict[column_name] = self.get(key)
+
+                results.append(doc_dict)
+
+        return results
+
     
     def _exact(self, field, value):
         results = []
@@ -91,8 +109,16 @@ class DocumentDB():
         return results
 
 
-    def search(self, field, value):
-        results = self._exact(field, value)
+    def search(self, field, value, type: str = "exact"):
+        if type == "exact":
+            results = self._exact(field, value)
+        
+        elif type == "contains":
+            results = self._contains(field, value)
+        
+        else:
+            print(f"Wrong search type specified. Must specifiy 'exact' or 'contains' not {type}\n")
+            return None
 
         return results
     
