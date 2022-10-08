@@ -2,6 +2,7 @@ from database import DocumentDB
 from document import Document
 
 
+
 if __name__ == "__main__":
     db = DocumentDB("database/")
 
