@@ -1,4 +1,4 @@
-from database import DocumentDB
+from document_db import DocumentDB
 from document import Document
 
 if __name__ == "__main__":
@@ -12,3 +12,6 @@ if __name__ == "__main__":
 
     db.insert(doc_1)
     db.insert(doc_2)
+
+
+    

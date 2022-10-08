@@ -37,7 +37,7 @@ class DocumentDB():
 
         for key in self.iterate_keys():
             key_column = re.findall("[^/]*", key)[2]
-
+            
             if field == key_column:
                 if value == self.get(key):
                     row_id = re.findall("[^/]*", key)[0]
@@ -55,8 +55,9 @@ class DocumentDB():
 
         for key in self.iterate_keys():
             key_column = re.findall("[^/]*", key)[2]
+            key_value = self.get(key)
 
-            if field == key_column:
+            if (field == key_column) and key_value:
                 if value in self.get(key):
                     row_id = re.findall("[^/]*", key)[0]
                     all_ids.append(row_id)
@@ -122,3 +123,9 @@ class DocumentDB():
 
         return results
     
+    def delete(self, id):
+        for key in self.iterate_keys():
+            doc_id = re.findall("[^/]*", key)[0]
+
+            if str(id) == doc_id:
+                self.db[key] = None
