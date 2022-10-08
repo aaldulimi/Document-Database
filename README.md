@@ -16,7 +16,7 @@ Currently under active development, however here are some things that you can do
 
 - **Insert documents**
 - **Exact and contains search**
-- [soon] Delete document(s)
+- **Delete document(s)**
 - [soon] Range search 
 - [soon] Full-text search 
 - [soon] Documentation

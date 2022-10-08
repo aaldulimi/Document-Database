@@ -123,9 +123,16 @@ class DocumentDB():
 
         return results
     
-    def delete(self, id):
+    def _delete(self, id):
         for key in self.iterate_keys():
             doc_id = re.findall("[^/]*", key)[0]
 
             if str(id) == doc_id:
                 self.db[key] = None
+
+
+    def delete(self, id_list):
+        for id in id_list:
+            self._delete(id)
+
+            

@@ -10,7 +10,7 @@ if __name__ == "__main__":
     exact_result = db.search(field="author", value="Julie Turkewitz", type="exact")
     contains_result = db.search(field="author", value="J", type="contains", max_count=1)
 
-    # delete document using its id
-    db.delete(2)
+    # delete document(s) using their id
+    db.delete([2])
 
     
