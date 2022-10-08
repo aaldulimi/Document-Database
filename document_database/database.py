@@ -3,20 +3,24 @@ import re
 
 
 class DocumentDB():
+    counter = 0
+
     def __init__(self, path: str = "database/"):
         self.db = Rdict(path)
         
-    def insert(self, document, primary_key = None):
+    def insert(self, document):
         # encoding: primary_key/column_name -> value 
+        DocumentDB.counter += 1
+        document_dict = document.__dict__
 
-        if not primary_key:
-            primary_key = list(document.keys())[0]
+        if "id" not in document_dict:
+            document["id"] = DocumentDB.counter
+        
+        doc_id = document_dict["id"]
 
-        primary_key_value = document.__dict__[primary_key]
-
-        for key, value in document.__dict__.items():
-            if key != primary_key:
-                key_string = f"{primary_key_value}/{key}"
+        for key, value in document_dict.items():
+            if key != "id":
+                key_string = f"{doc_id}/{key}"
                 self.db[key_string] = value
 
     
@@ -42,10 +46,12 @@ class DocumentDB():
         doc_id = self.get_id(field, value)
 
         if doc_id:
+            doc_dict["id"] = doc_id
+            
             for key in self.iterate_keys():
-                primary_key = re.findall("[^/]*", key)[0]
-                
-                if primary_key == doc_id:
+                search_doc_id = re.findall("[^/]*", key)[0]
+
+                if search_doc_id == doc_id:
                     column_name = re.findall("[^/]*", key)[2]
                     doc_dict[column_name] = self.get(key)
 
