@@ -1,5 +1,4 @@
 from document_db import DocumentDB
-from document import Document
 
 
 
@@ -12,5 +11,7 @@ if __name__ == "__main__":
 
     # delete document(s) using their id
     db.delete([2])
+
+
 
     

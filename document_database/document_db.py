@@ -8,22 +8,26 @@ class DocumentDB():
     def __init__(self, path: str = "database/"):
         self.db = Rdict(path)
         
+    def insert_object(self, document):
+        document_dict = document.__dict__.copy()
+        self.insert(document_dict)
+
+
     def insert(self, document):
         # encoding: primary_key/column_name -> value 
         DocumentDB.counter += 1
-        document_dict = document.__dict__.copy()
 
-        if "id" not in document_dict:
-            document_dict["id"] = DocumentDB.counter
+        if "id" not in document:
+            document["id"] = DocumentDB.counter
         
-        doc_id = document_dict["id"]
+        doc_id = document["id"]
 
-        for key, value in document_dict.items():
+        for key, value in document.items():
             if key != "id":
                 key_string = f"{doc_id}/{key}"
                 self.db[key_string] = value
-
     
+
     def get(self, key):
         return self.db[key]
 
