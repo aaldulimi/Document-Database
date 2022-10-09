@@ -10,19 +10,18 @@ Simple document database written in Python. This is more of a Proof-of-concept t
     
 
 
-
 ## Features
 Currently under active development, however here are some things that you can do
 
 - **Insert documents**
 - **Exact and contains search**
 - **Delete document(s)**
-- [soon] Range search 
-- [soon] Full-text search 
-- [soon] Documentation
-- [soon] Tensor search
-- [soon] REST API 
-- [soon] More efficient encoding and search algorithms
+- **[IN-DEVELOPMENT] REST API**
+- [SOON] Range search 
+- [SOON] Full-text search 
+- [SOON] Documentation
+- [SOON] Tensor search
+- [SOON] More efficient encoding and search algorithms
 
 
 ## Installation 
