@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     doc_3 = {
         "title": "Another document",
-        "author": "Some author",
+        "author": "Some author with a J",
         "body": "The content of the document",
         "random": "a new field that no other document has"
     }
