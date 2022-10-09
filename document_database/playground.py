@@ -15,6 +15,8 @@ if __name__ == "__main__":
     # get entire document using its id 
     doc_2 = db.get_document("2")
 
+    print(doc_2)
+
 
 
     

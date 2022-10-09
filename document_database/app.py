@@ -11,7 +11,16 @@ async def search(type: str, field: str, value: str):
 
     return {"results": results}
 
-# TO-DO:   
-# return doc via id
+
+
+@app.get("/document/{doc_id}")
+async def get_document(doc_id):
+    db = DocumentDB("../database")
+    result = db.get_document(str(doc_id))
+
+    return result
+
+# TO-DO:  
+# connect to db 
 # delete doc 
 # insert doc
