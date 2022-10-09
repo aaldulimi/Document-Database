@@ -5,7 +5,7 @@ import re
 class DocumentDB():
     counter = 0
 
-    def __init__(self, path: str = "database/"):
+    def __init__(self, path: str = "../database/"):
         self.db = Rdict(path)
         
     def insert_object(self, document):
@@ -131,12 +131,29 @@ class DocumentDB():
         for key in self.iterate_keys():
             doc_id = re.findall("[^/]*", key)[0]
 
-            if str(id) == doc_id:
+            if id == doc_id:
                 self.db[key] = None
 
 
     def delete(self, id_list):
         for id in id_list:
             self._delete(id)
+
+    
+    def get_document(self, id):
+        document = {}
+
+        for key in self.iterate_keys():
+            search_doc_id = re.findall("[^/]*", key)[0]
+
+            if search_doc_id == id:
+                column_name = re.findall("[^/]*", key)[2]
+                document[column_name] = self.get(key)
+
+        if document:
+            document["id"] = id
+
+        return document
+
 
             
