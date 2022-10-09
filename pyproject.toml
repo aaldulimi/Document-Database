@@ -1,12 +1,14 @@
 [tool.poetry]
-name = "Document-Database"
-version = "0.1.0"
+name = "Document Database"
+version = "0.1.1"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Ahmed Al-Dulimi"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 rocksdict = "^0.2.16"
+fastapi = "^0.85.0"
+uvicorn = "^0.18.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
