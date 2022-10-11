@@ -1,26 +1,34 @@
 from rocksdict import Rdict 
 import re
+import random
+import string 
 
 
 class DocumentDB():
-    counter = 0
-
     def __init__(self, path: str = "../database/"):
         self.db = Rdict(path)
-        
+    
+    def _generate_id(self):
+        characters = string.ascii_letters + string.digits 
+        doc_id = ''.join(random.choice(characters) for i in range(8))
+
+        return doc_id
+
     def insert_object(self, document):
         document_dict = document.__dict__.copy()
         self.insert(document_dict)
 
 
     def insert(self, document):
-        # encoding: primary_key/column_name -> value 
-        DocumentDB.counter += 1
+        # encoding:
+        # doc_id -> 1 
+        # doc_id/column_name -> value 
 
         if "id" not in document:
-            document["id"] = DocumentDB.counter
+            document["id"] = self._generate_id()
         
         doc_id = document["id"]
+        self.db[doc_id] = 1
 
         for key, value in document.items():
             if key != "id":
