@@ -1,5 +1,4 @@
 from rocksdict import Rdict 
-import re
 import random
 import string 
 from pathlib import Path
