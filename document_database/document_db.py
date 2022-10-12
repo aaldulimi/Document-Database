@@ -2,12 +2,23 @@ from rocksdict import Rdict
 import re
 import random
 import string 
+from pathlib import Path
 
 
 class DocumentDB():
     def __init__(self, path: str = "../database/"):
+        self.path = path
         self.db = Rdict(path)
     
+    def _delete_old_logs(self):
+        database_path = Path(self.path)    
+        database_files = list(database_path.iterdir())
+        
+        for filename in database_files:
+            if filename.name[:7] == "LOG.old":
+                filename.unlink()
+             
+             
     def _generate_id(self):
         characters = string.ascii_letters + string.digits 
         doc_id = ''.join(random.choice(characters) for i in range(8))
