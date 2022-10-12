@@ -14,9 +14,12 @@ class DocumentDB():
 
         return doc_id
 
+
     def insert_object(self, document):
         document_dict = document.__dict__.copy()
-        self.insert(document_dict)
+        doc_id = self.insert(document_dict)
+
+        return doc_id
 
 
     def insert(self, document):
@@ -24,34 +27,46 @@ class DocumentDB():
         # doc_id -> 1 
         # doc_id/column_name -> value 
 
-        if "id" not in document:
-            document["id"] = self._generate_id()
+        if "_id" not in document:
+            document["_id"] = self._generate_id()
         
-        doc_id = document["id"]
+        doc_id = document["_id"]
         self.db[doc_id] = 1
 
         for key, value in document.items():
-            if key != "id":
+            if key != "_id":
                 key_string = f"{doc_id}/{key}"
                 self.db[key_string] = value
     
+        return doc_id
 
-    def get(self, key):
+
+    def insert_batch(self, document_list):
+        for document in document_list:
+            self.insert(document)
+
+
+    def insert_batch_objects(self, object_list):
+        for object in object_list:
+            self.insert_object(object)
+
+
+    def _get(self, key):
         return self.db[key]
 
     
-    def iterate_keys(self):
+    def _iterate_keys(self):
         for key in self.db.keys():
             yield key
 
     def get_id_exact(self, field, value, max_count: int = None):
         all_ids = []
 
-        for key in self.iterate_keys():
+        for key in self._iterate_keys():
             key_column = re.findall("[^/]*", key)[2]
             
             if field == key_column:
-                if value == self.get(key):
+                if value == self._get(key):
                     row_id = re.findall("[^/]*", key)[0]
                     all_ids.append(row_id)
         
@@ -65,12 +80,12 @@ class DocumentDB():
     def get_id_contains(self, field, value, max_count: int = None):
         all_ids = []
 
-        for key in self.iterate_keys():
+        for key in self._iterate_keys():
             key_column = re.findall("[^/]*", key)[2]
-            key_value = self.get(key)
+            key_value = self._get(key)
 
             if (field == key_column) and key_value:
-                if value in self.get(key):
+                if value in self._get(key):
                     row_id = re.findall("[^/]*", key)[0]
                     all_ids.append(row_id)
         
@@ -87,14 +102,14 @@ class DocumentDB():
         if doc_ids:
             for doc_id in doc_ids:
                 doc_dict = {}
-                doc_dict["id"] = doc_id
+                doc_dict["_id"] = doc_id
                 
-                for key in self.iterate_keys():
+                for key in self._iterate_keys():
                     search_doc_id = re.findall("[^/]*", key)[0]
 
                     if search_doc_id == doc_id:
                         column_name = re.findall("[^/]*", key)[2]
-                        doc_dict[column_name] = self.get(key)
+                        doc_dict[column_name] = self._get(key)
 
                 results.append(doc_dict)
 
@@ -108,14 +123,14 @@ class DocumentDB():
         if doc_ids:
             for doc_id in doc_ids:
                 doc_dict = {}
-                doc_dict["id"] = doc_id
+                doc_dict["_id"] = doc_id
                 
-                for key in self.iterate_keys():
+                for key in self._iterate_keys():
                     search_doc_id = re.findall("[^/]*", key)[0]
 
                     if search_doc_id == doc_id:
                         column_name = re.findall("[^/]*", key)[2]
-                        doc_dict[column_name] = self.get(key)
+                        doc_dict[column_name] = self._get(key)
 
                 results.append(doc_dict)
 
@@ -135,33 +150,48 @@ class DocumentDB():
 
         return results
     
-    def _delete(self, id):
-        for key in self.iterate_keys():
+    def delete(self, id):
+        did_delete = False
+
+        for key in self._iterate_keys():
             doc_id = re.findall("[^/]*", key)[0]
 
             if id == doc_id:
                 self.db[key] = None
+                did_delete = True
+
+        return did_delete
 
 
-    def delete(self, id_list):
+    def delete_bath(self, id_list):
         for id in id_list:
-            self._delete(id)
+            self.delete(id)
 
     
-    def get_document(self, id):
+    def get(self, id):
         document = {}
 
-        for key in self.iterate_keys():
+        for key in self._iterate_keys():
             search_doc_id = re.findall("[^/]*", key)[0]
 
             if search_doc_id == id:
                 column_name = re.findall("[^/]*", key)[2]
-                document[column_name] = self.get(key)
+                document[column_name] = self._get(key)
 
         if document:
-            document["id"] = id
+            document["_id"] = id
 
         return document
+    
+
+    def get_batch(self, id_list):
+        results = []
+
+        for id in id_list:
+            document = self.get_document(id)
+            results.append(document)
+
+        return results
 
 
             
