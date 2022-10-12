@@ -56,7 +56,7 @@ class DocumentDB():
             self.insert(document)
 
 
-    def insert_batch_objects(self, object_list):
+    def insert_object_batch(self, object_list):
         for object in object_list:
             self.insert_object(object)
 

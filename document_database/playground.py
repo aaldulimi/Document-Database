@@ -13,9 +13,9 @@ if __name__ == "__main__":
     # db.delete("_id")
 
     # get entire document using its id 
-    # doc_1 = db.get("_id")
+    doc_1 = db.get("7fKchz8T")
 
-    print(exact_result)
+    print(doc_1)
 
   
 
