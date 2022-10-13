@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Document Database"
-version = "0.1.7"
+version = "0.2.0"
 description = ""
 authors = ["Ahmed Al-Dulimi"]
 
@@ -9,6 +9,7 @@ python = "^3.8"
 rocksdict = "^0.2.16"
 fastapi = "^0.85.0"
 uvicorn = "^0.18.3"
+tantivy = "^0.13.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

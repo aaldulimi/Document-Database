@@ -2,12 +2,57 @@ from rocksdict import Rdict
 import random
 import string 
 from pathlib import Path
+import tantivy
 
 
 class DocumentDB():
     def __init__(self, path: str = "../database/"):
         self.path = path
         self.db = Rdict(path)
+        
+
+    def create_full_text_index(self, fields):
+        schema_builder = tantivy.SchemaBuilder()
+
+        schema_builder.add_text_field("_id", stored=True)
+
+        for field in fields:
+            schema_builder.add_text_field(field, stored=False)
+            
+        schema = schema_builder.build()
+
+        index_path = self.path + "/tantivy/"
+        index = tantivy.Index(schema , path=index_path)
+
+        writer = index.writer()
+
+        current_doc_id = ""
+        current_doc = {}
+
+        for key in self._iterate_keys():
+            seperated_key = key.split("/")
+            doc_id = seperated_key[0]
+            key_column = seperated_key[1]
+
+            if doc_id != current_doc_id:
+                if current_doc:
+                    # append doc to index
+                    current_doc["_id"] = [current_doc_id]
+
+                    writer.add_document(tantivy.Document(**current_doc))
+                    writer.commit()
+                    
+                current_doc = {}
+                current_doc_id = doc_id
+
+            if key_column in fields:
+                key_value = self._get(key)
+                
+                if key_value:
+                    current_doc[key_column] = key_value
+        
+        return index
+        
     
     def _delete_old_logs(self):
         database_path = Path(self.path)    
@@ -46,7 +91,7 @@ class DocumentDB():
                 key_string = f"{doc_id}/{key}"
                 self.db[key_string] = value
 
-        self._delete_old_logs()
+        # self._delete_old_logs()
         return doc_id
 
 
@@ -164,6 +209,24 @@ class DocumentDB():
 
         self._delete_old_logs()
         return results
+
+    
+    def text_search(self, index, query: str, fields, count: int = 2):
+        results = []
+
+        searcher = index.searcher()
+        parsed_query = index.parse_query(query, fields)
+
+        text_results = searcher.search(parsed_query, count).hits
+
+        for result in text_results:
+            score, address = result
+            document_id = searcher.doc(address)["_id"][0]
+
+            results.append(self.get(document_id))
+
+        return results
+
     
 
     def delete(self, id):
@@ -209,6 +272,23 @@ class DocumentDB():
             results.append(document)
 
         return results
+
+    
+    def _delete_db_files(self):
+        database_path = Path(self.path)    
+        database_files = list(database_path.iterdir())
+        
+        for filename in database_files:
+            filename.unlink()
+    
+    def _delete_tantivy_files(self):
+        tantivy_path = Path(self.path + "/tantivy/")    
+        tantivy_files = list(tantivy_path.iterdir())
+        
+        for filename in tantivy_files:
+            filename.unlink()
+
+
 
 
             

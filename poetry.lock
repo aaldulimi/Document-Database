@@ -208,6 +208,14 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 full = ["itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests"]
 
 [[package]]
+name = "tantivy"
+version = "0.13.2"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "typing-extensions"
 version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -241,7 +249,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "aea67ab3708976475823f47525bcae79b5b21f976dc2a8e7e9e70fc6165c06df"
+content-hash = "661e2ab0db3a006095b455fb640e7e8822cc59db59e5f1d04823280b2c97fbd7"
 
 [metadata.files]
 anyio = []
@@ -283,6 +291,7 @@ pytest = [
 rocksdict = []
 sniffio = []
 starlette = []
+tantivy = []
 typing-extensions = []
 uvicorn = []
 wcwidth = [

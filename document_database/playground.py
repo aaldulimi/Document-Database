@@ -13,9 +13,17 @@ if __name__ == "__main__":
     # db.delete("_id")
 
     # get entire document using its id 
-    doc_1 = db.get("7fKchz8T")
+    # doc_1 = db.get("7fKchz8T")
 
-    print(doc_1)
+    # print(doc_1)
+
+    index = db.create_full_text_index(fields=["title"])
+    text_search = db.text_search(index, query="Global Fallout", fields=["title"], count=2)
+    
+    print(text_search)
+
+
+    
 
   
 
