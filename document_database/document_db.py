@@ -9,6 +9,7 @@ class DocumentDB():
     def __init__(self, path: str = "../database/"):
         self.path = path
         self.db = Rdict(path)
+        self.indexes = []
         
 
     def create_full_text_index(self, fields):
@@ -51,8 +52,14 @@ class DocumentDB():
                 if key_value:
                     current_doc[key_column] = key_value
         
-        return index
-        
+        # return index id
+        self.indexes.append(index)
+        return len(self.indexes) - 1
+    
+
+    def get_index(self, index_id):
+        return self.indexes[index_id]
+
     
     def _delete_old_logs(self):
         database_path = Path(self.path)    
@@ -274,12 +281,14 @@ class DocumentDB():
         return results
 
     
-    def _delete_db_files(self):
+    def _delete_db_files(self, delete_index: bool = False):
         database_path = Path(self.path)    
         database_files = list(database_path.iterdir())
         
         for filename in database_files:
             filename.unlink()
+        
+        if delete_index: self._delete_tantivy_files()
     
     def _delete_tantivy_files(self):
         tantivy_path = Path(self.path + "/tantivy/")    
@@ -287,6 +296,9 @@ class DocumentDB():
         
         for filename in tantivy_files:
             filename.unlink()
+
+
+
 
 
 

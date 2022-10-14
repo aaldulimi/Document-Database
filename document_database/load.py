@@ -1,5 +1,13 @@
 from document_db import DocumentDB
-from document import Document
+import dataclasses
+
+
+@dataclasses.dataclass
+class Document:
+    title: str
+    author: str
+    body: str
+    
 
 if __name__ == "__main__":
     db = DocumentDB()
