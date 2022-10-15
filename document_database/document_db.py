@@ -3,28 +3,56 @@ import random
 import string 
 from pathlib import Path
 import tantivy
+import json
 
 
 class DocumentDB():
     def __init__(self, path: str = "../database/"):
         self.path = path
         self.db = Rdict(path)
-        self.indexes = []
         
 
-    def create_full_text_index(self, fields):
-        schema_builder = tantivy.SchemaBuilder()
+    def _check_index(self, index_name):
+        with open("index.json", "a") as outfile:
+            index_data = json.load(outfile)
+        
+        for text_index in index_data:
+            if text_index["name"] == index_name:
+                return True
 
+        return False
+
+    
+    def _add_index(self, index_specs):
+        with open("index.json", "a") as outfile:
+            json.dump(index_specs, outfile)
+            
+    
+    def create_full_text_index(self, index_name, fields):
+        if self._check_index(index_name):
+            return "Index already exists"
+
+        index_specs = {
+            "name": index_name,
+            "schema": ["_id"],
+            "path": ""
+        }
+
+        schema_builder = tantivy.SchemaBuilder()
         schema_builder.add_text_field("_id", stored=True)
 
         for field in fields:
             schema_builder.add_text_field(field, stored=False)
+            index_specs["schema"].append(field)
             
         schema = schema_builder.build()
 
         index_path = self.path + "/tantivy/"
-        index = tantivy.Index(schema , path=index_path)
+        index_specs["path"] = index_path
 
+        self._add_index(index_specs)
+
+        index = tantivy.Index(schema , path=index_path)
         writer = index.writer()
 
         current_doc_id = ""
@@ -52,9 +80,8 @@ class DocumentDB():
                 if key_value:
                     current_doc[key_column] = key_value
         
-        # return index id
-        self.indexes.append(index)
-        return len(self.indexes) - 1
+       
+        return index
     
 
     def get_index(self, index_id):
