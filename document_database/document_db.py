@@ -1,3 +1,4 @@
+from curses import meta
 from rocksdict import Rdict 
 import random
 import string 
@@ -9,28 +10,72 @@ import json
 class DocumentDB():
     def __init__(self, path: str = "../database/"):
         self.path = path
+
+        self._create_dir(self.path)
         self.db = Rdict(path)
+
+
+    def _create_dir(self, dir_path, with_meta: bool = False):
+        if Path(dir_path).is_dir():
+            return False
+
+        # make directory 
+        db_path = Path(dir_path)
+        db_path.mkdir(parents=True, exist_ok=True)
+
+        # make meta file 
+        if with_meta:
+            with open(dir_path + "/meta.json", "w") as f:
+                json.dump([], f, indent=4)
+        
+        return True
+    
+    def _add_index(self, index_specs):
+        meta_file = self.path + "full_text/meta.json"
+
+        with open(meta_file) as f:
+            index_data = json.load(f)
+
+        index_data.append(index_specs)
+
+        with open(meta_file, "w") as f:
+            json.dump(index_data, f, indent=4)
         
 
-    def _check_index(self, index_name):
-        with open("index.json", "a") as outfile:
-            index_data = json.load(outfile)
-        
-        for text_index in index_data:
-            if text_index["name"] == index_name:
-                return True
+
+    def _check_index_exists(self, index_name):
+        self._create_dir(self.path + "full_text", with_meta=True)
+
+        if Path(self.path + "full_text/" + index_name).is_dir():
+            return True
 
         return False
 
+
+    def get_index(self, index_name):
+        schema_builder = tantivy.SchemaBuilder()
+
+        with open(self.path + "full_text/meta.json") as f:
+            index_data = json.load(f)
+
+        for index in index_data:
+            if index["name"] == index_name:
+                for field in index["schema"]:
+                    schema_builder.add_text_field(field, stored=True)
+
+                index_path = index["path"]
+
+        schema = schema_builder.build()
+        index = tantivy.Index(schema, path=index_path)
+        
+        return index
     
-    def _add_index(self, index_specs):
-        with open("index.json", "a") as outfile:
-            json.dump(index_specs, outfile)
-            
-    
+
+
     def create_full_text_index(self, index_name, fields):
-        if self._check_index(index_name):
-            return "Index already exists"
+        if self._check_index_exists(index_name):
+            return self.get_index(index_name)
+             
 
         index_specs = {
             "name": index_name,
@@ -47,9 +92,10 @@ class DocumentDB():
             
         schema = schema_builder.build()
 
-        index_path = self.path + "/tantivy/"
+        index_path = self.path + "full_text/" + index_name
         index_specs["path"] = index_path
 
+        self._create_dir(index_path)
         self._add_index(index_specs)
 
         index = tantivy.Index(schema , path=index_path)
@@ -83,9 +129,6 @@ class DocumentDB():
        
         return index
     
-
-    def get_index(self, index_id):
-        return self.indexes[index_id]
 
     
     def _delete_old_logs(self):
@@ -317,8 +360,9 @@ class DocumentDB():
         
         if delete_index: self._delete_tantivy_files()
     
+
     def _delete_tantivy_files(self):
-        tantivy_path = Path(self.path + "/tantivy/")    
+        tantivy_path = Path(self.path + "/full_text/")    
         tantivy_files = list(tantivy_path.iterdir())
         
         for filename in tantivy_files:
