@@ -17,10 +17,10 @@ Currently under active development, however here are some things that you can do
 - **Exact and contains search**
 - **Delete document(s)**
 - **REST API**
-- [IN-DEVELOPMENT] Full-text search 
+- **Full-text search**
+- [IN-DEVELOPMENT] Tensor search
 - [SOON] Range search 
 - [SOON] Documentation
-- [SOON] Tensor search
 - [SOON] More efficient encoding and search algorithms
 
 
