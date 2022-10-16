@@ -54,6 +54,7 @@ class DocumentDB():
 
     def get_index(self, index_name):
         schema_builder = tantivy.SchemaBuilder()
+        schema_builder.add_text_field("_id", stored=True)
 
         with open(self.path + "full_text/meta.json") as f:
             index_data = json.load(f)
@@ -61,8 +62,8 @@ class DocumentDB():
         for index in index_data:
             if index["name"] == index_name:
                 for field in index["schema"]:
-                    schema_builder.add_text_field(field, stored=True)
-
+                    if field != "_id": schema_builder.add_text_field(field, stored=False)
+                    
                 index_path = index["path"]
 
         schema = schema_builder.build()
@@ -98,7 +99,7 @@ class DocumentDB():
         self._create_dir(index_path)
         self._add_index(index_specs)
 
-        index = tantivy.Index(schema , path=index_path)
+        index = tantivy.Index(schema, path=index_path)
         writer = index.writer()
 
         current_doc_id = ""

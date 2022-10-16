@@ -16,7 +16,8 @@ if __name__ == "__main__":
     # doc_1 = db.get("7fKchz8T")
 
     # create an index to enable full-text search on some field(s) and then query it
-    index = db.create_full_text_index("test_2", fields=["title"])
+    # index = db.create_full_text_index("sample_index", fields=["title"])
+    index = db.get_index("sample_index")
     text_search = db.text_search(index, query="Global Fallout", fields=["title"], count=2)
 
     print(text_search)
