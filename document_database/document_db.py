@@ -369,6 +369,10 @@ class DocumentDB():
         for filename in tantivy_files:
             filename.unlink()
 
+    
+    def delete_all(self):
+        self._delete_db_files(True)
+
 
 
 
