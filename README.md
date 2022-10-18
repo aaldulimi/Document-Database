@@ -18,7 +18,8 @@ Currently under active development, however here are some things that you can do
 - **Delete document(s)**
 - **REST API**
 - **Full-text search**
-- [IN-DEVELOPMENT] Tensor search
+- [IN-DEVELOPMENT] Update encoding method
+- [SOON] Tensor search
 - [SOON] Range search 
 - [SOON] Documentation
 - [SOON] More efficient encoding and search algorithms
