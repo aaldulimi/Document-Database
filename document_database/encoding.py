@@ -11,7 +11,6 @@ def encode_int(x: int) -> bytes:
     byte_length = (x.bit_length() + 7) // 8
     return x.to_bytes(byte_length, 'big')
     
-
 def decode_int(xbytes: bytes) -> int:
     return int.from_bytes(xbytes, 'big')
 
@@ -24,14 +23,20 @@ def decode_float(xbytes: bytes) -> float:
     return struct.unpack('<d', xbytes)[0]
 
 
+# boolean
+def encode_bool(x: bool) -> bytes:
+    return struct.pack('?', x)
+
+def decode_bool(xbytes: bytes) -> bool:
+    return struct.unpack('?', xbytes)[0]
+
+
 # str
 def encode_str(x: str) -> bytes:
     return bytes(x, 'utf-8')
- 
 
 def decode_str(xbytes: bytes) -> str:
     return str(xbytes.decode())
-
 
 
 # array
@@ -51,5 +56,4 @@ def decode_array(arr: bytes) -> list:
     arr = json.loads(arr_decoded)
     
     return arr
-
 
