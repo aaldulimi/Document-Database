@@ -5,6 +5,7 @@ import json
 
 
 
+# int
 def encode_int(number: int) -> bytes:
     byte_length = (number.bit_length() + 7) // 8
     return number.to_bytes(byte_length, 'big')
@@ -14,6 +15,18 @@ def decode_int(number_bytes: bytes) -> int:
     return int.from_bytes(number_bytes, 'big')
 
 
+
+# str
+def encode_str(text: str) -> bytes:
+    return bytes(text, 'utf-8')
+ 
+
+def decode_str(text_bytes: bytes) -> str:
+    return str(text_bytes.decode())
+
+
+
+# array
 def encode_array(arr: list) -> bytes:
     # make sure list is not nested 
     if (any(isinstance(i, list) for i in arr)):
@@ -30,5 +43,3 @@ def decode_array(arr: bytes) -> list:
     arr = json.loads(arr_decoded)
     
     return arr
-
-  
