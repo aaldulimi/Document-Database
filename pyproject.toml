@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Document Database"
-version = "0.2.4.4"
+version = "0.2.4.5"
 description = ""
 authors = ["Ahmed Al-Dulimi"]
 
