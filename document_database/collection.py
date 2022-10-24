@@ -1,11 +1,11 @@
-from document_db import DocumentDB
+from database import DocDB
 from pathlib import Path
 import tantivy
 
 
 class Collection():
-    def __init__(self, db: DocumentDB, name: str):
-        self.db = db
+    def __init__(self, db: DocDB, name: str):
+        self.db_path = db.path
         self.name = name
 
     def _create_dir(self, dir_path, with_meta: bool = False):

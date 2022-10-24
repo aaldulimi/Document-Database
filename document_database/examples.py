@@ -1,4 +1,4 @@
-from document_db import DocumentDB
+from database import DocumentDB
 
 
 # connect to db 

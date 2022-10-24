@@ -1,4 +1,4 @@
-from document_database.document_db import DocumentDB
+from document_database.database import DocumentDB
 from document_database.document import Document
 
 class TestInsertions:
