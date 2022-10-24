@@ -3,7 +3,7 @@ from collection import Collection
 
 
 class DocDB():
-    def __init__(self, path: str = "../database/"):
+    def __init__(self, path: str = "database/"):
         self.path = path
         self._create_dir(self.path)
         
@@ -18,8 +18,9 @@ class DocDB():
 
         return True
 
+
     def collection(self, name: str):
-        return Collection(name)
+        return Collection(self.path, name)
 
 
     def delete_database(self):

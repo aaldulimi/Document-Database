@@ -1,4 +1,3 @@
-from database import DocDB
 from pathlib import Path
 import tantivy
 import json
@@ -7,8 +6,8 @@ from rocksdict import Rdict
 import random
 
 class Collection():
-    def __init__(self, db: DocDB, name: str):
-        self.db_path = db.path
+    def __init__(self, db_path: str, name: str):
+        self.db_path = db_path
         self.name = name
         self.path = self.db_path + name
 
@@ -167,7 +166,7 @@ class Collection():
         for key, value in document.items():
             if key != "_id":
                 key_string = f"{doc_id}/{key}"
-                self.db[key_string] = value
+                self.collection[key_string] = value
 
         # self._delete_old_logs()
         return doc_id
@@ -184,11 +183,11 @@ class Collection():
 
 
     def _get(self, key):
-        return self.db[key]
+        return self.collection[key]
 
     
     def _iterate_keys(self):
-        for key in self.db.keys():
+        for key in self.collection.keys():
             yield key
         
         self._delete_old_logs()
@@ -314,7 +313,7 @@ class Collection():
             doc_id = key.split("/")[0]
 
             if id == doc_id:
-                self.db[key] = None
+                self.collection[key] = None
                 did_delete = True
 
         self._delete_old_logs()
