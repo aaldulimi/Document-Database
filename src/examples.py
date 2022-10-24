@@ -1,4 +1,4 @@
-from database import DocDB
+from docdb import DocDB
 
 # connect to db 
 db = DocDB("database/")
@@ -43,7 +43,7 @@ index = news.get_index("index_name")
 text_search = news.text_search(index, query="Global Fallout", fields=["title"], count=2)
 
 # print results
-print(text_search)
+print(exact_result)
 
 
 

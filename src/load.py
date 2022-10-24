@@ -1,4 +1,4 @@
-from document_db import DocumentDB
+from docdb import DocDB
 import dataclasses
 
 
@@ -10,7 +10,8 @@ class Document:
     
 
 if __name__ == "__main__":
-    db = DocumentDB()
+    db = DocDB()
+    news = db.collection("news")
 
     doc_1 = Document("Global Fallout From Rate Moves Won’t Stop the Fed",
         "Jeanna Smialek and Alan Rappeport", "The Federal Reserve, like many central banks...")
@@ -18,8 +19,8 @@ if __name__ == "__main__":
     doc_2 = Document("In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
         "Julie Turkewitz", "Two crises are converging at the perilous land bridge known as the Darién Gap...")
 
-    db.insert_object(doc_1)
-    db.insert_object(doc_2)
+    news.insert_object(doc_1)
+    news.insert_object(doc_2)
 
 
     doc_3 = {
@@ -29,7 +30,7 @@ if __name__ == "__main__":
         "random": "a new field that no other document has"
     }
 
-    db.insert(doc_3)
+    news.insert(doc_3)
 
 
     

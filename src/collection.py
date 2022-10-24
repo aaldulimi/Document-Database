@@ -11,6 +11,8 @@ class Collection():
         self.name = name
         self.path = self.db_path + name
 
+        print(self.path)
+
         self._create_dir(self.path, with_meta=False)
         self.collection = Rdict(self.path)
         
