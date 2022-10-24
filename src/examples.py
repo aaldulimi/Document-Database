@@ -1,8 +1,12 @@
-from database import DocumentDB
+from database import DocDB
 
 
 # connect to db 
-db = DocumentDB("../database/")
+db = DocDB("../database/")
+
+# create a collection
+posts = db.collection("posts")
+
 
 # insert a document (_id will be generated if its not included in the document)
 # will return the _id of the document 

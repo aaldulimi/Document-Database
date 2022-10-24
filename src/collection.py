@@ -1,12 +1,20 @@
 from database import DocDB
 from pathlib import Path
 import tantivy
-
+import json
+import string
+from rocksdict import Rdict
+import random
 
 class Collection():
     def __init__(self, db: DocDB, name: str):
         self.db_path = db.path
         self.name = name
+        self.path = self.db_path + name
+
+        self._create_dir(self.path, with_meta=False)
+        self.collection = Rdict(self.path)
+        
 
     def _create_dir(self, dir_path, with_meta: bool = False):
         if Path(dir_path).is_dir():
@@ -24,7 +32,7 @@ class Collection():
         return True
     
     def _add_index(self, index_specs):
-        meta_file = self.path + "full_text/meta.json"
+        meta_file = self.path + "/full_text/meta.json"
 
         with open(meta_file) as f:
             index_data = json.load(f)
@@ -36,9 +44,9 @@ class Collection():
         
 
     def _check_index_exists(self, index_name):
-        self._create_dir(self.path + "full_text", with_meta=True)
+        self._create_dir(self.path + "/full_text", with_meta=True)
 
-        if Path(self.path + "full_text/" + index_name).is_dir():
+        if Path(self.path + "/full_text/" + index_name).is_dir():
             return True
 
         return False
@@ -48,7 +56,7 @@ class Collection():
         schema_builder = tantivy.SchemaBuilder()
         schema_builder.add_text_field("_id", stored=True)
 
-        with open(self.path + "full_text/meta.json") as f:
+        with open(self.path + "/full_text/meta.json") as f:
             index_data = json.load(f)
 
         for index in index_data:
@@ -85,7 +93,7 @@ class Collection():
             
         schema = schema_builder.build()
 
-        index_path = self.path + "full_text/" + index_name
+        index_path = self.path + "/full_text/" + index_name
         index_specs["path"] = index_path
 
         self._create_dir(index_path)

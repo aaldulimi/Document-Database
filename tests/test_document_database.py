@@ -1,9 +1,9 @@
-from document_database.database import DocumentDB
-from document_database.document import Document
+from src.database import DocDB
+from src.document import Document
 
 class TestInsertions:
     def test_one_document(self):
-        db = DocumentDB("database/")
+        db = DocDB("database/")
 
         doc = {
             "title": "Another document",
@@ -17,7 +17,7 @@ class TestInsertions:
         assert doc == get_doc
 
     def test_batch_documents(self):
-        db = DocumentDB("database/")
+        db = DocDB("database/")
 
         doc_1 = {
             "_id": "doc1",
@@ -43,7 +43,7 @@ class TestInsertions:
 
 
     def test_one_object(self):
-        db = DocumentDB("database/")
+        db = DocDB("database/")
 
         doc = Document("In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
             "Julie Turkewitz", "Two crises are converging at the perilous land bridge known as the Darién Gap...")
@@ -56,7 +56,7 @@ class TestInsertions:
         assert doc.__dict__ == get_doc
 
     def test_batch_objects(self):
-        db = DocumentDB("database/")
+        db = DocDB("database/")
 
         doc_1 = Document("In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
             "Julie Turkewitz", "Two crises are converging at the perilous land bridge known as the Darién Gap...")
