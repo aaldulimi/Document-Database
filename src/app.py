@@ -1,59 +1,64 @@
 from fastapi import FastAPI
 from typing import Any, Dict, List, Union
-from document_db import DocumentDB
+from docdb import DocDB
 from pydantic import BaseModel
 
 class Settings(BaseModel):
-    path: str = "../database"
+    db_path: str = "../database/"
 
 
 app_settings = Settings()
 app = FastAPI()
 
+@app.get("/")
+async def status():
+    return {
+        "status": "online"
+    }
 
 @app.get("/settings/info")
 async def settings_info():
     return {
-        "db_path": app_settings.path
+        "db_path": app_settings.db_path
     }
 
 @app.post("/settings/update")
 async def update_settings(settings: Settings):
-    app_settings.path = settings.path
+    app_settings.db_path = settings.db_path
 
     return {
-        "db_path": app_settings.path
+        "db_path": app_settings.db_path
     }
     
 
-@app.get("/search/")
-async def search(type: str, field: str, value: str):
-    db = DocumentDB(app_settings.path)
-    documents = db.search(field=field, value=value, type=type)
+@app.get("/{collection_name}/search/")
+async def search(collection_name, type: str, field: str, value: str):
+    collection = DocDB(app_settings.db_path).collection(collection_name)
+    documents = collection.search(field=field, value=value, type=type)
 
     return {"documents": documents}
 
 
-@app.get("/document/{doc_id}")
-async def get_document(doc_id):
-    db = DocumentDB(app_settings.path)
-    document = db.get(str(doc_id))
+@app.get("/{collection_name}/document/{doc_id}")
+async def get_document(collection_name: str, doc_id):
+    collection = DocDB(app_settings.db_path).collection(collection_name)
+    document = collection.get(str(doc_id))
 
     return {"document": document}
 
 
-@app.delete("/delete/{doc_id}")
-async def delete_document(doc_id):
-    db = DocumentDB(app_settings.path)
-    did_delete = db.delete([doc_id])
+@app.delete("/{collection_name}/delete/{doc_id}")
+async def delete_document(collection_name: str, doc_id):
+    collection = DocDB(app_settings.db_path).collection(collection_name)
+    did_delete = collection.delete([doc_id])
 
     return {"didDelete": did_delete}
 
 
-@app.post("/insert/")
-async def insert_doc(document: Union[List,Dict,Any]=None):
-    db = DocumentDB(app_settings.path)
-    doc_id = db.insert(document)
+@app.post("/{collection_name}/insert/")
+async def insert_doc(collection_name: str, document: Union[List,Dict,Any]=None):
+    collection = DocDB(app_settings.db_path).collection(collection_name)
+    doc_id = collection.insert(document)
 
     return {"_id": doc_id}
 

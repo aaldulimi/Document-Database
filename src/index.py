@@ -2,7 +2,6 @@ from typing import Optional
 import tantivy
 import json
 from pathlib import Path
-from rocksdict import Rdict
 
 class Index():
     def __init__(self, db_path, collection, name: str, fields : Optional[list] = None):
