@@ -20,7 +20,8 @@ Currently under active development, however here are some things that you can do
 - **Full-text search**
 - [IN-DEVELOPMENT] Update encoding method
 - [SOON] Tensor search
-- [SOON] Range search 
+- [SOON] Update query language
+- [SOON] Benchmarks 
 - [SOON] Documentation
 - [SOON] More efficient encoding and search algorithms
 

@@ -4,6 +4,8 @@ import json
 import string
 from rocksdict import Rdict, Options
 import random
+from index import Index
+from typing import Optional
 
 class Collection():
     def __init__(self, db_path: str, name: str):
@@ -29,105 +31,6 @@ class Collection():
                 json.dump([], f, indent=4)
         
         return True
-    
-    def _add_index(self, index_specs):
-        meta_file = self.path + "/full_text/meta.json"
-
-        with open(meta_file) as f:
-            index_data = json.load(f)
-
-        index_data.append(index_specs)
-
-        with open(meta_file, "w") as f:
-            json.dump(index_data, f, indent=4)
-        
-
-    def _check_index_exists(self, index_name):
-        self._create_dir(self.path + "/full_text", with_meta=True)
-
-        if Path(self.path + "/full_text/" + index_name).is_dir():
-            return True
-
-        return False
-
-
-    def get_index(self, index_name):
-        schema_builder = tantivy.SchemaBuilder()
-        schema_builder.add_text_field("_id", stored=True)
-
-        with open(self.path + "/full_text/meta.json") as f:
-            index_data = json.load(f)
-
-        for index in index_data:
-            if index["name"] == index_name:
-                for field in index["schema"]:
-                    if field != "_id": schema_builder.add_text_field(field, stored=False)
-                    
-                index_path = index["path"]
-
-        schema = schema_builder.build()
-        index = tantivy.Index(schema, path=index_path)
-        
-        return index
-    
-
-
-    def create_full_text_index(self, index_name, fields):
-        if self._check_index_exists(index_name):
-            print(f"Index: {index_name} already exists.")
-            return self.get_index(index_name)
-             
-        index_path = self.path + "/full_text/" + index_name
-
-        index_specs = {
-            "name": index_name,
-            "schema": ["_id"],
-            "path": index_path
-        }
-
-        schema_builder = tantivy.SchemaBuilder()
-        schema_builder.add_text_field("_id", stored=True)
-
-        for field in fields:
-            schema_builder.add_text_field(field, stored=False)
-            index_specs["schema"].append(field)
-            
-        schema = schema_builder.build()
-
-        self._create_dir(index_path)
-        self._add_index(index_specs)
-
-        index = tantivy.Index(schema, path=index_path)
-        writer = index.writer()
-
-        current_doc_id = ""
-        current_doc = {}
-
-        for key in self._iterate_keys():
-            seperated_key = key.split("/")
-            doc_id = seperated_key[0]
-            key_column = seperated_key[1]
-
-            if doc_id != current_doc_id:
-                if current_doc:
-                    # append doc to index
-                    current_doc["_id"] = [current_doc_id]
-
-                    writer.add_document(tantivy.Document(**current_doc))
-                    writer.commit()
-                    
-                current_doc = {}
-                current_doc_id = doc_id
-
-            if key_column in fields:
-                key_value = self._get(key)
-                
-                if key_value:
-                    current_doc[key_column] = key_value
-        
-       
-        return index
-    
 
     
     def _delete_old_logs(self):
@@ -190,6 +93,13 @@ class Collection():
             yield key
         
         self._delete_old_logs()
+
+    
+    def index(self, name: str, fields: Optional[list] = None):
+        index = Index(self.path, self.collection, name, fields).create()
+
+        return index
+
 
     def get_id_exact(self, field, value, max_count: int = None):
         all_ids = []
