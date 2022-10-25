@@ -23,7 +23,7 @@ class DocDB():
         return Collection(self.path, name)
 
 
-    def delete_database(self):
+    def destroy(self):
         database_path = Path(self.path)    
         database_files = list(database_path.iterdir())
         

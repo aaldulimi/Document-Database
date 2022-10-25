@@ -2,7 +2,7 @@ from pathlib import Path
 import tantivy
 import json
 import string
-from rocksdict import Rdict
+from rocksdict import Rdict, Options
 import random
 
 class Collection():
@@ -11,10 +11,8 @@ class Collection():
         self.name = name
         self.path = self.db_path + name
 
-        print(self.path)
-
         self._create_dir(self.path, with_meta=False)
-        self.collection = Rdict(self.path)
+        self.collection = Rdict(path=self.path) # options=Options(raw_mode=True)
         
 
     def _create_dir(self, dir_path, with_meta: bool = False):
@@ -76,13 +74,15 @@ class Collection():
 
     def create_full_text_index(self, index_name, fields):
         if self._check_index_exists(index_name):
+            print(f"Index: {index_name} already exists.")
             return self.get_index(index_name)
              
+        index_path = self.path + "/full_text/" + index_name
 
         index_specs = {
             "name": index_name,
             "schema": ["_id"],
-            "path": ""
+            "path": index_path
         }
 
         schema_builder = tantivy.SchemaBuilder()
@@ -93,9 +93,6 @@ class Collection():
             index_specs["schema"].append(field)
             
         schema = schema_builder.build()
-
-        index_path = self.path + "/full_text/" + index_name
-        index_specs["path"] = index_path
 
         self._create_dir(index_path)
         self._add_index(index_specs)
@@ -290,7 +287,7 @@ class Collection():
         return results
 
     
-    def text_search(self, index, query: str, fields, count: int = 2):
+    def text_search(self, index: tantivy.Index, query: str, fields: list, count: int = 2):
         results = []
 
         searcher = index.searcher()
@@ -351,6 +348,11 @@ class Collection():
             results.append(document)
 
         return results
+
+
+    def destroy(self):
+        Rdict.destroy(self.path)
+
 
     
     

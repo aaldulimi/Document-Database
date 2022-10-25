@@ -15,7 +15,7 @@ doc_id = news.insert({
         })
 
 # can also insert multiple documents, documents aren't bound to a specific schema
-doc_id = news.insert_batch([{
+news.insert_batch([{
         "title": "How Russian Action Movies Are Selling War",
         "body": "Mihir Zaveri",
     }, {
@@ -33,17 +33,17 @@ exact_result = news.search(field="author", value="Julie Turkewitz", type="exact"
 contains_result = news.search(field="author", value="J", type="contains", max_count=1)
 
 # can create a full-text search index, specifying which fields to index
-index = news.create_full_text_index("index_name", fields=["title"])
+index = news.create_full_text_index("title_index", fields=["title"])
 
 # you can also use a old index that you created in an older session 
-index = news.get_index("index_name")
+index = news.get_index("title_index")
 
 # once you have an index, can now use to perform full-text search on a subset (or all)
 # of the fields you indexed
 text_search = news.text_search(index, query="Global Fallout", fields=["title"], count=2)
 
 # print results
-print(exact_result)
+print(text_search)
 
 
 
