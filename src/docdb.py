@@ -20,6 +20,7 @@ class DocDB():
 
 
     def collection(self, name: str):
+        # add to meta.json file that belongs to db (outside of all collections)
         return Collection(self.path, name)
 
 

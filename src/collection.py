@@ -6,6 +6,7 @@ from rocksdict import Rdict, Options
 import random
 from index import Index
 from typing import Optional
+import encoding 
 
 class Collection():
     def __init__(self, db_path: str, name: str):
@@ -14,8 +15,20 @@ class Collection():
         self.path = self.db_path + name
 
         self._create_dir(self.path, with_meta=False)
-        self.collection = Rdict(path=self.path) # options=Options(raw_mode=True)
-        
+        self.collection = Rdict(path=self.path, options=Options(raw_mode=True))
+
+        self.encoding_types = {
+            str: 0,
+            int: 1,
+            float: 2,
+            bool: 3,
+            list: 4,
+            "0": str,
+            "1": int,
+            "2": float,
+            "3": bool,
+            "4": list,
+        }
 
     def _create_dir(self, dir_path, with_meta: bool = False):
         if Path(dir_path).is_dir():
@@ -57,8 +70,11 @@ class Collection():
 
 
     def insert(self, document):
-        # encoding: 
+        # current encoding: 
         # doc_id/column_name -> value 
+
+        # new encoding (not yet implemented)
+        # collection_id/doc_id/col_id -> datatype_id/value 
 
         if "_id" not in document:
             document["_id"] = self._generate_id()
@@ -67,8 +83,13 @@ class Collection():
 
         for key, value in document.items():
             if key != "_id":
-                key_string = f"{doc_id}/{key}"
-                self.collection[key_string] = value
+                key_string = f"{self.name}/{doc_id}/{key}"
+                value_string = f'{self.encoding_types[type(value)]}/{value}'
+
+                encoded_key = encoding.encode_str(key_string)
+                encoded_value = encoding.encode_str(value_string)
+
+                self.collection[encoded_key] = encoded_value
 
         # self._delete_old_logs()
         return doc_id
@@ -85,7 +106,11 @@ class Collection():
 
 
     def _get(self, key):
-        return self.collection[key]
+        decoded_value = encoding.decode_str(self.collection[key]).split("/")
+        decoded_type = decoded_value[0]
+        decoded_value = decoded_value[1]
+
+        return self.encoding_types[decoded_type](decoded_value)
 
     
     def _iterate_keys(self):
@@ -238,10 +263,11 @@ class Collection():
         document = {}
 
         for key in self._iterate_keys():
-            search_doc_id = key.split("/")[0]
+            decoded_key = encoding.decode_str(key).split("/")
+            search_doc_id = decoded_key[1]
 
             if (search_doc_id == id):
-                column_name = key.split("/")[1]
+                column_name = decoded_key[2]
                 document[column_name] = self._get(key)
 
         if document:
