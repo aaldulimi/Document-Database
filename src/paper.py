@@ -2,7 +2,7 @@ from pathlib import Path
 from collection import Collection
 
 
-class DocDB():
+class PaperDB():
     def __init__(self, path: str = "database/"):
         self.path = path
         self._create_dir(self.path)

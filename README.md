@@ -1,8 +1,8 @@
-# Document Database 
+# PaperDB 
 Simple document (i.e. NoSQL) database written in Python. This is more of a Proof-of-concept than a production-ready database. 
 
 ## Contents
-- [Document Database](#twitter-api)
+- [PaperDB](#paperdb)
   - [Contents](#contents)
   - [Features](#features)
   - [Installation](#installation)
@@ -18,16 +18,15 @@ Currently under active development, however here are some things that you can do
 - **Delete document(s)**
 - **REST API**
 - **Full-text search**
-- [IN-DEVELOPMENT] Update encoding method
-- [SOON] Tensor search
 - [SOON] Update query language
 - [SOON] Benchmarks 
+- [SOON] Tensor search
 - [SOON] Documentation
-- [SOON] More efficient encoding and search algorithms
+- [SOON] Indexes 
 
 
 ## Installation 
 Git clone this repo, cd into the root directory and run ```poetry install```. This does require [poetry](https://python-poetry.org/) to be installed on your local machine. 
 
 ## Usage
-Check out ```document_database/examples.py```. Will add proper documentation and more in-depth examples later. 
+Check out ```src/examples.py```. Will add proper documentation and more in-depth examples later. 

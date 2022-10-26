@@ -5,7 +5,6 @@ import string
 from rocksdict import Rdict, Options
 import random
 from index import Index
-from typing import Optional
 import encoding 
 
 class Collection():

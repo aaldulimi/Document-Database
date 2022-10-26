@@ -1,7 +1,7 @@
-from docdb import DocDB
+from paper import PaperDB
 
 # connect to db 
-db = DocDB("database/")
+db = PaperDB("database/")
 
 # create a collection
 news = db.collection("posts")

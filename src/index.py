@@ -96,7 +96,7 @@ class Index():
 
     def create(self):
         if self._check_index_exists(self.name):
-            print(f"Index: {self.name} already exists. Change the index name to create a new index")
+            print(f"Index: {self.name} already exists. Change the index name to create a new index.")
             return self.get_index(self.name)
         
         if not self.fields:

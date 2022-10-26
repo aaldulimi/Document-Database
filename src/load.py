@@ -1,4 +1,4 @@
-from docdb import DocDB
+from paper import PaperDB
 import dataclasses
 
 
@@ -10,7 +10,7 @@ class Document:
     
 
 if __name__ == "__main__":
-    db = DocDB()
+    db = PaperDB()
     news = db.collection("news")
 
     doc_1 = Document("Global Fallout From Rate Moves Won’t Stop the Fed",
@@ -25,9 +25,9 @@ if __name__ == "__main__":
 
     doc_3 = {
         "title": "Another document",
-        "author": "Some author with a J",
-        "body": "The content of the document",
-        "random": "a new field that no other document has",
+        "2022?": True,
+        "pi": 3.14,
+        "basic list": [1, 2, 3],
         "a_number": 4,
     }
 
