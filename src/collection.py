@@ -69,10 +69,7 @@ class Collection():
 
 
     def insert(self, document):
-        # current encoding: 
-        # doc_id/column_name -> value 
-
-        # new encoding (not yet implemented)
+        # encoding method
         # collection_id/doc_id/col_id -> datatype_id/value 
 
         if "_id" not in document:
@@ -105,12 +102,15 @@ class Collection():
             self.insert_object(object)
 
 
-    def _get(self, key):
-        value = self.collection[key]
+    def _decode_value(self, value):
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
         
         return decoded_value
+
+    def _get(self, key):
+        value = self.collection[key]
+        return self._decode_value(value)
 
     
     def _iterate_keys(self):
@@ -226,6 +226,23 @@ class Collection():
             return None
 
         self._delete_old_logs()
+        return results
+    
+    
+    def query(self, query: dict):
+        results = []
+        if not query: return results
+
+        field_list = list(query.keys())
+
+        for k, v in self.collection.items():
+            decoded_key = encoding.decode_str(k).split("/")
+            column = decoded_key[2]
+
+            if column in field_list:
+                if query[column] == self._decode_value(v): 
+                    results.append(self.get(decoded_key[1]))
+
         return results
 
     

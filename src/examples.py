@@ -42,8 +42,11 @@ index = news.use_index("title_index")
 # of the fields you indexed
 text_search = news.text_search(index, query="Global Fallout", fields=["title"], count=2)
 
+# new query method (in-development)
+query = news.query({"title": "Another document", "pi": 3.14})
+
 # print results
-print(text_search)
+print(query)
 
 
 
