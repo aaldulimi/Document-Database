@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     doc_id = news.insert(doc_3)
 
-    print(doc_id)
+    print(news.get(doc_id))
 
    
 

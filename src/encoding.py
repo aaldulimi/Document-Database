@@ -3,7 +3,54 @@
 
 import json
 import struct
+from typing import Union
 
+def encode_this(x: Union[int, float, bool, str, list]) -> bytes:
+    if type(x) == int:
+        xbytes = encode_int(x)
+        return xbytes
+    
+    if type(x) == float:
+        xbytes = encode_float(x)
+        return xbytes
+
+    if type(x) == bool:
+        xbytes = encode_bool(x)
+        return xbytes
+
+    if type(x) == str:
+        xbytes = encode_str(x)
+        return xbytes
+
+    if type(x) == list:
+        xbytes = encode_array(x)
+        return xbytes
+
+    # raise some sort of error if its none of the listed types 
+
+
+def decode_this(data_type: Union[int, float, bool, str, list] , xbytes: bytes) -> Union[int, float, bool, str, list]:
+    if data_type == int:
+        x = decode_int(xbytes)
+        return x
+    
+    if data_type == float:
+        x = decode_float(xbytes)
+        return x
+
+    if data_type == bool:
+        x = decode_bool(xbytes)
+        return x
+    
+    if data_type == str:
+        x = decode_str(xbytes)
+        return x
+    
+    if data_type == list:
+        x = decode_array(xbytes)
+        return x
+    
+    
 
 
 # int

@@ -23,11 +23,11 @@ class Collection():
             float: 3,
             bool: 4,
             list: 5,
-            "1": str,
-            "2": int,
-            "3": float,
-            "4": bool,
-            "5": list,
+            1: str,
+            2: int,
+            3: float,
+            4: bool,
+            5: list,
         }
 
     def _create_dir(self, dir_path, with_meta: bool = False):
@@ -84,10 +84,11 @@ class Collection():
         for key, value in document.items():
             if key != "_id":
                 key_string = f"{self.name}/{doc_id}/{key}"
-                value_string = f'{self.encoding_types[type(value)]}/{value}'
+                encoded_data = encoding.encode_this(value)
+                encoded_data_type = encoding.encode_int(self.encoding_types[type(value)]) # byte of length 1
 
                 encoded_key = encoding.encode_str(key_string)
-                encoded_value = encoding.encode_str(value_string)
+                encoded_value = encoded_data_type + encoded_data
 
                 self.collection[encoded_key] = encoded_value
 
@@ -106,12 +107,11 @@ class Collection():
 
 
     def _get(self, key):
-        decoded_value = encoding.decode_str(self.collection[key]).split("/")
-        decoded_type = decoded_value[0]
-        print(decoded_value)
-        decoded_value = decoded_value[1]
-
-        return self.encoding_types[decoded_type](decoded_value)
+        value = self.collection[key]
+        decoded_data_type = self.encoding_types[value[0]]
+        decoded_value = encoding.decode_this(decoded_data_type, value[1:])
+        
+        return decoded_value
 
     
     def _iterate_keys(self):
