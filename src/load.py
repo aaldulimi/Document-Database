@@ -11,7 +11,7 @@ class Document:
 
 if __name__ == "__main__":
     db = DocDB()
-    news = db.collection("posts")
+    news = db.collection("news")
 
     doc_1 = Document("Global Fallout From Rate Moves Won’t Stop the Fed",
         "Jeanna Smialek and Alan Rappeport", "The Federal Reserve, like many central banks...")
@@ -28,11 +28,11 @@ if __name__ == "__main__":
         "author": "Some author with a J",
         "body": "The content of the document",
         "random": "a new field that no other document has",
-        "a_number": 4
+        "a_number": 4,
     }
 
     doc_id = news.insert(doc_3)
-    
+
     print(doc_id)
 
    

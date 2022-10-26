@@ -2,17 +2,25 @@ from typing import Optional
 import tantivy
 import json
 from pathlib import Path
+import encoding
 
 class Index():
-    def __init__(self, db_path, collection, name: str, fields : Optional[list] = None):
+    def __init__(self, db_path, collection, name: str, fields : Optional[list] = None, 
+        encoding_types = dict):
+
         self.name = name 
         self.fields = fields 
         self.db_path = db_path
         self.collection = collection
+        self.encoding_types = encoding_types
     
 
-    def _get(self, key: str):
-        return self.collection[key]
+    def _get(self, key):
+        decoded_value = encoding.decode_str(self.collection[key]).split("/")
+        decoded_type = decoded_value[0]
+        decoded_value = decoded_value[1]
+
+        return self.encoding_types[decoded_type](decoded_value)
     
 
     def _create_dir(self, dir_path, with_meta: bool = False):
@@ -88,7 +96,7 @@ class Index():
 
     def create(self):
         if self._check_index_exists(self.name):
-            print(f"Index: {self.name} already exists.")
+            print(f"Index: {self.name} already exists. Change the index name to create a new index")
             return self.get_index(self.name)
         
         if not self.fields:
@@ -122,9 +130,10 @@ class Index():
         current_doc = {}
 
         for key in self._iterate_keys():
-            seperated_key = key.split("/")
-            doc_id = seperated_key[0]
-            key_column = seperated_key[1]
+            decoded_key = encoding.decode_str(key).split("/")
+            
+            doc_id = decoded_key[1]
+            key_column = decoded_key[2]
 
             if doc_id != current_doc_id:
                 if current_doc:

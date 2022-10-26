@@ -18,16 +18,16 @@ class Collection():
         self.collection = Rdict(path=self.path, options=Options(raw_mode=True))
 
         self.encoding_types = {
-            str: 0,
-            int: 1,
-            float: 2,
-            bool: 3,
-            list: 4,
-            "0": str,
-            "1": int,
-            "2": float,
-            "3": bool,
-            "4": list,
+            str: 1,
+            int: 2,
+            float: 3,
+            bool: 4,
+            list: 5,
+            "1": str,
+            "2": int,
+            "3": float,
+            "4": bool,
+            "5": list,
         }
 
     def _create_dir(self, dir_path, with_meta: bool = False):
@@ -57,7 +57,7 @@ class Collection():
 
     def _generate_id(self):
         characters = string.ascii_letters + string.digits 
-        doc_id = ''.join(random.choice(characters) for i in range(8))
+        doc_id = ''.join(random.choice(characters) for _ in range(8))
 
         return doc_id
 
@@ -108,6 +108,7 @@ class Collection():
     def _get(self, key):
         decoded_value = encoding.decode_str(self.collection[key]).split("/")
         decoded_type = decoded_value[0]
+        print(decoded_value)
         decoded_value = decoded_value[1]
 
         return self.encoding_types[decoded_type](decoded_value)
@@ -120,22 +121,27 @@ class Collection():
         self._delete_old_logs()
 
     
-    def index(self, name: str, fields: Optional[list] = None):
-        index = Index(self.path, self.collection, name, fields).create()
+    def create_index(self, name: str, fields: list):
+        index = Index(self.path, self.collection, name, fields, encoding_types=self.encoding_types).create()
 
         return index
 
+    def use_index(self, name: str):
+        index = Index(self.path, self.collection, name, encoding_types=self.encoding_types).get_index()
+
+        return index
+        
 
     def get_id_exact(self, field, value, max_count: int = None):
         all_ids = []
 
         for key in self._iterate_keys():
-            
-            key_column = key.split("/")[1]
+            decoded_key = encoding.decode_str(key).split("/")
+            key_column = decoded_key[2]
             
             if field == key_column:
                 if value == self._get(key):
-                    row_id = key.split("/")[0]
+                    row_id = decoded_key[1]
                     all_ids.append(row_id)
         
             if max_count:
@@ -149,13 +155,13 @@ class Collection():
         all_ids = []
 
         for key in self._iterate_keys():
-            
-            key_column = key.split("/")[1]
+            decoded_key = encoding.decode_str(key).split("/")
+            key_column = decoded_key[2]
             key_value = self._get(key)
 
             if (field == key_column) and key_value:
                 if value in self._get(key):
-                    row_id = key.split("/")[0]
+                    row_id = decoded_key[1]
                     all_ids.append(row_id)
         
             if max_count:
@@ -174,11 +180,12 @@ class Collection():
                 doc_dict["_id"] = doc_id
                 
                 for key in self._iterate_keys():
-                    search_doc_id = key.split("/")[0]
+                    decoded_key = encoding.decode_str(key).split("/")
+                    search_doc_id = decoded_key[1]
 
                     if (search_doc_id == doc_id):
 
-                        column_name = key.split("/")[1]
+                        column_name = decoded_key[2]
                         doc_dict[column_name] = self._get(key)
 
                 results.append(doc_dict)
@@ -196,10 +203,11 @@ class Collection():
                 doc_dict["_id"] = doc_id
                 
                 for key in self._iterate_keys():
-                    search_doc_id =  key.split("/")[0]
+                    decoded_key = encoding.decode_str(key).split("/")
+                    search_doc_id = decoded_key[1]
 
                     if (search_doc_id == doc_id):
-                        column_name = key.split("/")[1]
+                        column_name = decoded_key[2]
                         doc_dict[column_name] = self._get(key)
 
                 results.append(doc_dict)
@@ -244,10 +252,11 @@ class Collection():
         did_delete = False
 
         for key in self._iterate_keys():
-            doc_id = key.split("/")[0]
+            decoded_key = encoding.decode_str(key).split("/")
+            doc_id = decoded_key[1]
 
             if id == doc_id:
-                self.collection[key] = None
+                self.collection[key] = bytes(0)
                 did_delete = True
 
         self._delete_old_logs()
