@@ -2,7 +2,7 @@ from pathlib import Path
 import tantivy
 import json
 import string
-from rocksdict import Rdict, Options
+from rocksdict import Rdict, Options, ReadOptions
 import random
 from index import Index
 import encoding 
@@ -85,7 +85,6 @@ class Collection():
 
                 encoded_key = encoding.encode_str(key_string)
                 encoded_value = encoded_data_type + encoded_data
-
                 self.collection[encoded_key] = encoded_value
 
         # self._delete_old_logs()
@@ -103,10 +102,12 @@ class Collection():
 
 
     def _decode_value(self, value):
+        # print(value)
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
         
         return decoded_value
+
 
     def _get(self, key):
         value = self.collection[key]
@@ -229,7 +230,7 @@ class Collection():
         return results
     
     
-    def query(self, query: dict):
+    def find(self, query: dict):
         results = []
         if not query: return results
 
@@ -287,19 +288,25 @@ class Collection():
     def get(self, id):
         document = {}
 
-        for key in self._iterate_keys():
-            decoded_key = encoding.decode_str(key).split("/")
-            search_doc_id = decoded_key[1]
+        key = encoding.encode_str(self.name + "/" + id) 
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
+        
+        if not iter.key(): return {}
 
-            if (search_doc_id == id):
-                column_name = decoded_key[2]
-                document[column_name] = self._get(key)
+        while iter.valid():
+            encoded_key = iter.key()
+            encoded_value = iter.value()
+            
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+            column = decoded_key[2] 
+            document[column] = self._decode_value(encoded_value)
 
-        if document:
-            document["_id"] = id
-
+            iter.next()
+        
         return document
-    
+
+
 
     def get_batch(self, id_list):
         results = []

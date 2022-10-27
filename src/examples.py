@@ -4,14 +4,14 @@ from paper import PaperDB
 db = PaperDB("database/")
 
 # create a collection
-news = db.collection("posts")
+news = db.collection("news")
 
 # insert a document (_id will be generated if its not included in the document)
 # will return the _id of the document 
 doc_id = news.insert({
         "title": "A Housing Crisis Has More Politicians Saying Yes to Big Real Estate",
         "author": "Mihir Zaveri",
-        "source": "https://www.nytimes.com/2022/10/16/nyregion/politicians-housing-crisis-real-estate.html"
+        "source": "https://www.nytimes.com/2022/10/16/nyregion/politicians-housing-crisis-real-estate.html",
         })
 
 # can also insert multiple documents, documents aren't bound to a specific schema
@@ -19,7 +19,8 @@ news.insert_batch([{
         "title": "How Russian Action Movies Are Selling War",
         "body": "Mihir Zaveri",
     }, {
-        "title": "Apple Store in Oklahoma City Becomes Second to Unionize"
+        "title": "Apple Store in Oklahoma City Becomes Second to Unionize",
+        "number": 5,
     }])
 
 # get entire document using its id 
@@ -43,11 +44,8 @@ index = news.use_index("title_index")
 text_search = news.text_search(index, query="Global Fallout", fields=["title"], count=2)
 
 # new query method (in-development)
-query = news.query({"title": "Another document", "pi": 3.14})
+query = news.find({"author": "Mihir Zaveri", "number": 5})
 
 # print results
 print(query)
-
-
-
 
