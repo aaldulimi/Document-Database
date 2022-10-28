@@ -3,7 +3,7 @@ import tantivy
 import json
 from pathlib import Path
 import encoding
-
+from rocksdict import ReadOptions
 class Index():
     def __init__(self, db_path, collection, name: str, fields : Optional[list] = None, 
         encoding_types = dict):
@@ -15,13 +15,41 @@ class Index():
         self.encoding_types = encoding_types
     
 
-    def _get(self, key):
-        decoded_value = encoding.decode_str(self.collection[key]).split("/")
-        decoded_type = decoded_value[0]
-        decoded_value = decoded_value[1]
+    def _decode_value(self, value):
+        if not value: return None 
+        decoded_data_type = self.encoding_types[value[0]]
+        decoded_value = encoding.decode_this(decoded_data_type, value[1:])
+        
+        return decoded_value
 
-        return self.encoding_types[decoded_type](decoded_value)
+
+    def _get(self, key):
+        value = self.collection[key]
+        return self._decode_value(value)
     
+
+    def get(self, id):
+        document = {}
+
+        key = encoding.encode_str(self.name + "/" + id) 
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
+        
+        if not iter.key(): return {}
+
+        while iter.valid():
+            encoded_key = iter.key()
+            encoded_value = iter.value()
+            
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+            column = decoded_key[2] 
+            document[column] = self._decode_value(encoded_value)
+
+            iter.next()
+        
+        return document
+
+
 
     def _create_dir(self, dir_path, with_meta: bool = False):
         if Path(dir_path).is_dir():
@@ -75,28 +103,39 @@ class Index():
         return False
 
 
-    def get_index(self, index_name):
+    def get_index(self, index_name, with_schema: bool = True):
+        fetched_schema = []
         schema_builder = tantivy.SchemaBuilder()
         schema_builder.add_text_field("_id", stored=True)
 
         with open(self.db_path + "/full_text/meta.json") as f:
             index_data = json.load(f)
-
+        
+        found_index = False
         for index in index_data:
             if index["name"] == index_name:
                 for field in index["schema"]:
-                    if field != "_id": schema_builder.add_text_field(field, stored=False)
-                    
+                    if field != "_id": 
+                        schema_builder.add_text_field(field, stored=False)
+                        
+
+                if with_schema: fetched_schema = index["schema"]
+
+                found_index = True
                 index_path = index["path"]
 
+        # if not found_index: return None
         schema = schema_builder.build()
         index = tantivy.Index(schema, path=index_path)
         
+        if with_schema:
+            return index, fetched_schema
+        
         return index
+
 
     def create(self):
         if self._check_index_exists(self.name):
-            print(f"Index: {self.name} already exists. Change the index name to create a new index.")
             return self.get_index(self.name)
         
         if not self.fields:
@@ -115,7 +154,7 @@ class Index():
         schema_builder.add_text_field("_id", stored=True)
 
         for field in self.fields:
-            schema_builder.add_text_field(field, stored=False)
+            schema_builder.add_text_field(field, stored=True)
             index_specs["schema"].append(field)
             
         schema = schema_builder.build()
@@ -138,8 +177,7 @@ class Index():
             if doc_id != current_doc_id:
                 if current_doc:
                     # append doc to index
-                    current_doc["_id"] = [current_doc_id]
-
+                    current_doc["_id"] = [current_doc_id]                   
                     writer.add_document(tantivy.Document(**current_doc))
                     writer.commit()
                     
@@ -150,7 +188,26 @@ class Index():
                 key_value = self._get(key)
                 
                 if key_value:
-                    current_doc[key_column] = key_value
+                    current_doc[key_column] = [key_value]
         
        
         return index
+
+    def search(self, query: str, fields = None, limit: int = 1):
+        results = []
+
+        index, schema_fields = self.get_index(self.name, True)
+        if not fields: fields = schema_fields
+
+        index.reload()
+        searcher = index.searcher()
+        parsed_query = index.parse_query(query, fields)
+        text_results = searcher.search(parsed_query, limit).hits
+        
+        for result in text_results:
+            score, address = result
+            document_id = searcher.doc(address)["_id"][0]
+            
+            results.append(self.get(document_id))
+
+        return results

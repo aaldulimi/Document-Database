@@ -4,7 +4,7 @@ from paper import PaperDB
 db = PaperDB("database/")
 
 # create a collection
-news = db.collection("news")
+news = db.collection("yolo")
 
 # insert a document (_id will be generated if its not included in the document)
 # will return the _id of the document 
@@ -34,18 +34,18 @@ exact_result = news.search(field="author", value="Julie Turkewitz", type="exact"
 contains_result = news.search(field="author", value="J", type="contains", max_count=1)
 
 # can create a full-text search index, specifying which fields to index
-index = news.create_index("title_index", fields=["title"])
+index = news.create_index("siko1", fields=["title"])
 
 # you can also use a old index that you created in an older session, this index will not be recreated 
-index = news.use_index("title_index")
+index = news.get_index("siko1")
 
 # once you have an index, can now use to perform full-text search on a subset (or all)
 # of the fields you indexed
-text_search = news.text_search(index, query="Global Fallout", fields=["title"], count=2)
+text_search = index.search(query="Russian", fields=["title"], limit=1)
 
 # new query method (in-development)
 query = news.find({"author": "Mihir Zaveri", "number": 5})
 
 # print results
-print(query)
+print(text_search)
 

@@ -18,11 +18,11 @@ Currently under active development, however here are some things that you can do
 - **Delete document(s)**
 - **REST API**
 - **Full-text search**
-- [SOON] Update query language
-- [SOON] Benchmarks 
-- [SOON] Tensor search
+- [IN-DEVELOPMENT] Refine query language
 - [SOON] Documentation
+- [SOON] Benchmarks 
 - [SOON] Indexes 
+- [SOON] Tensor search
 
 
 ## Installation 

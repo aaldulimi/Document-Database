@@ -102,7 +102,7 @@ class Collection():
 
 
     def _decode_value(self, value):
-        # print(value)
+        if not value: return None 
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
         
@@ -122,34 +122,17 @@ class Collection():
 
     
     def create_index(self, name: str, fields: list):
-        index = Index(self.path, self.collection, name, fields, encoding_types=self.encoding_types).create()
-
+        index = Index(self.path, self.collection, name, fields, encoding_types=self.encoding_types)
+        index.create()
+        
         return index
 
-    def use_index(self, name: str):
-        index = Index(self.path, self.collection, name, encoding_types=self.encoding_types).get_index()
+    def get_index(self, name: str):
+        index = Index(self.path, self.collection, name, encoding_types=self.encoding_types)
+        index.get_index(name)
 
         return index
-        
-
-    def get_id_exact(self, field, value, max_count: int = None):
-        all_ids = []
-
-        for key in self._iterate_keys():
-            decoded_key = encoding.decode_str(key).split("/")
-            key_column = decoded_key[2]
-            
-            if field == key_column:
-                if value == self._get(key):
-                    row_id = decoded_key[1]
-                    all_ids.append(row_id)
-        
-            if max_count:
-                if len(all_ids) == max_count:
-                    return all_ids
-        
-        return all_ids
-                    
+                         
 
     def get_id_contains(self, field, value, max_count: int = None):
         all_ids = []
@@ -193,43 +176,6 @@ class Collection():
         return results
 
     
-    def _exact(self, field, value, max_count: int = None):
-        results = []
-        doc_ids = self.get_id_exact(field, value, max_count)
-
-        if doc_ids:
-            for doc_id in doc_ids:
-                doc_dict = {}
-                doc_dict["_id"] = doc_id
-                
-                for key in self._iterate_keys():
-                    decoded_key = encoding.decode_str(key).split("/")
-                    search_doc_id = decoded_key[1]
-
-                    if (search_doc_id == doc_id):
-                        column_name = decoded_key[2]
-                        doc_dict[column_name] = self._get(key)
-
-                results.append(doc_dict)
-
-        return results
-
-
-    def search(self, field, value, type: str = "exact", max_count: int = None):
-        if type == "exact":
-            results = self._exact(field, value, max_count)
-        
-        elif type == "contains":
-            results = self._contains(field, value, max_count)
-        
-        else:
-            print(f"Wrong search type specified. Must specifiy 'exact' or 'contains' not {type}\n")
-            return None
-
-        self._delete_old_logs()
-        return results
-    
-    
     def find(self, query: dict):
         results = []
         if not query: return results
@@ -247,16 +193,16 @@ class Collection():
         return results
 
     
-    def text_search(self, index: tantivy.Index, query: str, fields: list, count: int = 2):
+    def search(self, index: tantivy.Index, query: str, fields: list, limit: int = 2):
         results = []
 
         searcher = index.searcher()
         parsed_query = index.parse_query(query, fields)
 
-        text_results = searcher.search(parsed_query, count).hits
+        text_results = searcher.search(parsed_query, limit).hits
 
         for result in text_results:
-            score, address = result
+            address = result[1]
             document_id = searcher.doc(address)["_id"][0]
 
             results.append(self.get(document_id))
