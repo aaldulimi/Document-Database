@@ -86,7 +86,7 @@ class Collection():
                 encoded_value = encoded_data_type + encoded_data
                 self.collection[encoded_key] = encoded_value
 
-        self._delete_old_logs()
+        # self._delete_old_logs()
         return doc_id
 
 
@@ -226,8 +226,10 @@ class Collection():
         while iter.valid():
             encoded_key = iter.key()
             encoded_value = iter.value()
-            
+
             decoded_key = encoding.decode_str(encoded_key).split("/")
+            if decoded_key[1] != id: break
+            
             column = decoded_key[2] 
             document[column] = self._decode_value(encoded_value)
 
