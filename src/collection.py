@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import string
-from rocksdict import Rdict, Options, ReadOptions
+from rocksdict import Rdict, Options, ReadOptions, WriteBatch
 import random
 from index import Index
 import encoding 
@@ -86,7 +86,7 @@ class Collection():
                 encoded_value = encoded_data_type + encoded_data
                 self.collection[encoded_key] = encoded_value
 
-        # self._delete_old_logs()
+        self._delete_old_logs()
         return doc_id
 
 
@@ -207,6 +207,22 @@ class Collection():
         return did_delete
 
 
+    def _id_rows(self, id):
+        key = encoding.encode_str(self.name + "/" + id) 
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
+        
+        if not iter.key(): return {}
+
+        while iter.valid():
+            encoded_key = iter.key()
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+            if decoded_key[1] != id: break
+
+            yield encoded_key
+            iter.next()
+
+
     def delete_batch(self, id_list):
         for id in id_list:
             self.delete(id)
@@ -217,26 +233,13 @@ class Collection():
             "_id": id
         }
 
-        key = encoding.encode_str(self.name + "/" + id) 
-        iter = self.collection.iter(ReadOptions(raw_mode=True))
-        iter.seek(key)
-        
-        if not iter.key(): return {}
-
-        while iter.valid():
-            encoded_key = iter.key()
-            encoded_value = iter.value()
-
+        for encoded_key in self._id_rows(id):
             decoded_key = encoding.decode_str(encoded_key).split("/")
-            if decoded_key[1] != id: break
-            
-            column = decoded_key[2] 
-            document[column] = self._decode_value(encoded_value)
-
-            iter.next()
         
-        return document
+            column = decoded_key[2] 
+            document[column] = self._get(encoded_key)
 
+        return document
 
 
     def get_batch(self, id_list):
