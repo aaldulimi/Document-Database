@@ -6,7 +6,7 @@ import encoding
 from rocksdict import ReadOptions
 class Index():
     def __init__(self, db_path, collection, name: str, fields : Optional[list] = None, 
-        encoding_types = dict):
+            encoding_types: dict = None):
 
         self.name = name 
         self.fields = fields 
@@ -17,7 +17,7 @@ class Index():
 
     def _decode_value(self, value):
         if not value: return None 
-        decoded_data_type = self.encoding_types[value[0]]
+        decoded_data_type = self.encoding_types[value]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
         
         return decoded_value
