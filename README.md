@@ -7,6 +7,11 @@ Simple document (i.e. NoSQL) database written in Python. This is more of a Proof
   - [Features](#features)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [Create collection](#create-collection)
+    - [Insert doucment](#insert-document)
+    - [Get document](#get-document)
+    - [Query](#query)
+    - [Full-text search](#full-text-search)
     
 
 
@@ -18,8 +23,8 @@ Currently under active development, however here are some things that you can do
 - **Delete document(s)**
 - **REST API**
 - **Full-text search**
-- [IN-DEVELOPMENT] Refine query language
-- [SOON] Documentation
+- [IN-DEVELOPMENT] Documentation
+- [SOON] Support lt, gt, lte, gte, contains and range queries
 - [SOON] Benchmarks 
 - [SOON] Indexes 
 - [SOON] Tensor search
@@ -29,4 +34,41 @@ Currently under active development, however here are some things that you can do
 Git clone this repo, cd into the root directory and run ```poetry install```. This does require [poetry](https://python-poetry.org/) to be installed on your local machine. 
 
 ## Usage
-Check out ```src/examples.py```. Will add proper documentation and more in-depth examples later. 
+Full documentation will come later. For now, here are the basics:
+### Create collection 
+```
+from src.paper import PaperDB
+
+db = PaperDB(path="database/")
+news = db.collection("news")
+```
+
+### Insert document
+Supported data types: `str`, `int`, `float`, `bool` and `list`. Will support more later. 
+```
+doc_id = news.insert({
+  "title": "Elon Musk Completes $44 Billion Deal to Own Twitter",
+  "year": 2022,
+  "people": ["Elon Musk"],
+  "pi": 3.14,
+  "real": True
+})
+```
+The `insert` method will return a unique document `_id` 
+
+### Get document
+```
+news.get(doc_id)
+```
+
+### Query
+```
+news.find({"pi": 3.14, "real": True}, limit=10)
+``` 
+The `limit` arg is optional.
+### Full-text search 
+```
+index = news.create_index("title_index", fields=["title"])
+index.search("some query here", fields=["title"], limit=10)
+```
+The `fields` and `limit` args are both optional

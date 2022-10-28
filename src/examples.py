@@ -29,15 +29,11 @@ document = news.get(doc_id)
 # delete a document using its id
 news.delete(doc_id)
 
-# can perform exact or contains type searches on any document field 
-exact_result = news.search(field="author", value="Julie Turkewitz", type="exact")
-contains_result = news.search(field="author", value="J", type="contains", max_count=1)
-
 # can create a full-text search index, specifying which fields to index
-index = news.create_index("siko1", fields=["title"])
+index = news.create_index("title_index", fields=["title"])
 
 # you can also use a old index that you created in an older session, this index will not be recreated 
-index = news.get_index("siko1")
+index = news.get_index("title_index")
 
 # once you have an index, can now use to perform full-text search on a subset (or all)
 # of the fields you indexed
