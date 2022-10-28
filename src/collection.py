@@ -1,5 +1,4 @@
 from pathlib import Path
-import tantivy
 import json
 import string
 from rocksdict import Rdict, Options, ReadOptions
@@ -87,7 +86,7 @@ class Collection():
                 encoded_value = encoded_data_type + encoded_data
                 self.collection[encoded_key] = encoded_value
 
-        # self._delete_old_logs()
+        self._delete_old_logs()
         return doc_id
 
 
@@ -191,24 +190,6 @@ class Collection():
                     results.append(self.get(decoded_key[1]))
 
         return results
-
-    
-    def search(self, index: tantivy.Index, query: str, fields: list, limit: int = 2):
-        results = []
-
-        searcher = index.searcher()
-        parsed_query = index.parse_query(query, fields)
-
-        text_results = searcher.search(parsed_query, limit).hits
-
-        for result in text_results:
-            address = result[1]
-            document_id = searcher.doc(address)["_id"][0]
-
-            results.append(self.get(document_id))
-
-        return results
-
     
 
     def delete(self, id):
@@ -232,7 +213,9 @@ class Collection():
         
     
     def get(self, id):
-        document = {}
+        document = {
+            "_id": id
+        }
 
         key = encoding.encode_str(self.name + "/" + id) 
         iter = self.collection.iter(ReadOptions(raw_mode=True))
