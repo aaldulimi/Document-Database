@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Union
 from paper import PaperDB
 from pydantic import BaseModel
 
+
 class Settings(BaseModel):
     db_path: str = "../database/"
 
@@ -10,26 +11,23 @@ class Settings(BaseModel):
 app_settings = Settings()
 app = FastAPI()
 
+
 @app.get("/")
 async def status():
-    return {
-        "status": "online"
-    }
+    return {"status": "online"}
+
 
 @app.get("/settings/info")
 async def settings_info():
-    return {
-        "db_path": app_settings.db_path
-    }
+    return {"db_path": app_settings.db_path}
+
 
 @app.post("/settings/update")
 async def update_settings(settings: Settings):
     app_settings.db_path = settings.db_path
 
-    return {
-        "db_path": app_settings.db_path
-    }
-    
+    return {"db_path": app_settings.db_path}
+
 
 @app.get("/{collection_name}/search/")
 async def search(collection_name, type: str, field: str, value: str):
@@ -56,10 +54,8 @@ async def delete_document(collection_name: str, doc_id):
 
 
 @app.post("/{collection_name}/insert/")
-async def insert_doc(collection_name: str, document: Union[List,Dict,Any]=None):
+async def insert_doc(collection_name: str, document: Union[List, Dict, Any] = None):
     collection = PaperDB(app_settings.db_path).collection(collection_name)
     doc_id = collection.insert(document)
 
     return {"_id": doc_id}
-
-
