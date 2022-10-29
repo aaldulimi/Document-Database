@@ -57,6 +57,10 @@ class Index:
 
             iter.next()
 
+        if not document:
+            return None
+
+        document["_id"] = id
         return document
 
     def _create_dir(self, dir_path: str, with_meta: bool = False):
