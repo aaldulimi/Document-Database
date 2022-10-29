@@ -1,7 +1,8 @@
 # RockyDB 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb for the storage engine. This is more of a Proof-of-concept than a production-ready database. 
+Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
+
 ## Contents
 - [RockyDB](#rockydb)
   - [Contents](#contents)
@@ -15,6 +16,7 @@ A Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb 
     - [Query](#query)
     - [Full-text search](#full-text-search)
     
+
 
 ## Features
 Currently under active development, however here are some things that you can do:
