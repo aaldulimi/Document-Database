@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import string
-from rocksdict import Rdict, Options, ReadOptions, WriteBatch
+from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
 from index import Index
 import encoding
@@ -188,25 +188,17 @@ class Collection:
 
         return results
 
-    def delete(self, id):
+    def delete(self, id: bytes) -> bool:
+        found_doc = False
         writebatch = WriteBatch(raw_mode=True)
 
         for encoded_key in self._id_rows(id):
-            print(encoded_key)
             writebatch.delete(encoded_key)
+            found_doc = True
 
-        # did_delete = False
-
-        # for key in self._iterate_keys():
-        #     decoded_key = encoding.decode_str(key).split("/")
-        #     doc_id = decoded_key[1]
-
-        #     if id == doc_id:
-        #         self.collection[key] = bytes(0)
-        #         did_delete = True
-
-        # self._delete_old_logs()
-        # return did_delete
+        self.collection.write(writebatch)
+        
+        return found_doc
 
     def _id_rows(self, id):
         key = encoding.encode_str(self.name + "/" + id)
@@ -251,3 +243,16 @@ class Collection:
 
     def destroy(self):
         Rdict.destroy(self.path)
+
+    def flush(self, wait: bool = False):
+        self.collection.flush(wait)
+    
+    def compact_range(self, start: bytes = None, end: bytes = None):
+        if not start or not end:
+            iter = self.collection.iter(ReadOptions(raw_mode=True))
+            iter.seek_to_first()
+            start = iter.key()
+            iter.seek_to_last()
+            end = iter.key()
+        
+        self.collection.compact_range(start, end, CompactOptions())
