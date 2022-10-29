@@ -29,8 +29,7 @@ class Collection:
             5: list,
         }
 
-
-    def _create_dir(self, dir_path, with_meta: bool = False):
+    def _create_dir(self, dir_path: str, with_meta: bool = False):
         if Path(dir_path).is_dir():
             return False
 
@@ -59,13 +58,13 @@ class Collection:
 
         return doc_id
 
-    def insert_object(self, document):
+    def insert_object(self, document: object) -> str:
         document_dict = document.__dict__.copy()
         doc_id = self.insert(document_dict)
 
         return doc_id
 
-    def insert(self, document):
+    def insert(self, document: dict) -> str:
         # encoding method
         # collection_id/doc_id/col_id -> datatype_id/value
 
@@ -89,15 +88,15 @@ class Collection:
         self._delete_old_logs()
         return doc_id
 
-    def insert_batch(self, document_list):
+    def insert_batch(self, document_list: list):
         for document in document_list:
             self.insert(document)
 
-    def insert_object_batch(self, object_list):
+    def insert_object_batch(self, object_list: list):
         for object in object_list:
             self.insert_object(object)
 
-    def _decode_value(self, value):
+    def _decode_value(self, value: bytes):
         if not value:
             return None
         decoded_data_type = self.encoding_types[value[0]]
@@ -105,7 +104,7 @@ class Collection:
 
         return decoded_value
 
-    def _get(self, key):
+    def _get(self, key: bytes):
         value = self.collection[key]
         return self._decode_value(value)
 
@@ -117,7 +116,12 @@ class Collection:
 
     def create_index(self, name: str, fields: list):
         index = Index(
-            self.path, self.collection, self.name, name, fields, encoding_types=self.encoding_types
+            self.path,
+            self.collection,
+            self.name,
+            name,
+            fields,
+            encoding_types=self.encoding_types,
         )
         index.create()
 
@@ -125,13 +129,17 @@ class Collection:
 
     def get_index(self, name: str):
         index = Index(
-            self.path, self.collection, self.name, name, encoding_types=self.encoding_types
+            self.path,
+            self.collection,
+            self.name,
+            name,
+            encoding_types=self.encoding_types,
         )
         index.get_index(name)
 
         return index
 
-    def get_id_contains(self, field, value, max_count: int = None):
+    def get_id_contains(self, field: str, value, max_count: int = None):
         all_ids = []
 
         for key in self._iterate_keys():
@@ -150,7 +158,7 @@ class Collection:
 
         return all_ids
 
-    def _contains(self, field, value, max_count: int = None):
+    def _contains(self, field: str, value, max_count: int = None):
         results = []
         doc_ids = self.get_id_contains(field, value, max_count)
 
@@ -189,7 +197,8 @@ class Collection:
                     results.append(self.get(decoded_key[1]))
                     count += 1
 
-            if count == limit: break
+            if count == limit:
+                break
 
         return results
 
@@ -205,7 +214,7 @@ class Collection:
 
         return found_doc
 
-    def _id_rows(self, id):
+    def _id_rows(self, id: str):
         key = encoding.encode_str(self.name + "/" + id)
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
@@ -222,11 +231,11 @@ class Collection:
             yield encoded_key
             iter.next()
 
-    def delete_batch(self, id_list):
+    def delete_batch(self, id_list: list):
         for id in id_list:
             self.delete(id)
 
-    def get(self, id):
+    def get(self, id: str):
         document = {}
 
         for encoded_key in self._id_rows(id):
@@ -238,10 +247,10 @@ class Collection:
         if not document:
             return None
         document["_id"] = id
-        
+
         return document
 
-    def get_batch(self, id_list):
+    def get_batch(self, id_list: list):
         results = []
 
         for id in id_list:

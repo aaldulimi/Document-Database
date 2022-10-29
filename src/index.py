@@ -4,13 +4,14 @@ import json
 from pathlib import Path
 import src.encoding as encoding
 from rocksdict import ReadOptions
+from rocksdict import Rdict
 
 
 class Index:
     def __init__(
         self,
-        db_path,
-        collection,
+        db_path: str,
+        collection: Rdict,
         collection_name: str,
         name: str,
         fields: Optional[list] = None,
@@ -24,32 +25,33 @@ class Index:
         self.collection_name = collection_name
         self.encoding_types = encoding_types
 
-    def _decode_value(self, value):
+    def _decode_value(self, value: bytes):
         if not value:
             return None
+
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
 
         return decoded_value
 
-    def _get(self, key):
+    def _get(self, key: bytes):
         value = self.collection[key]
         return self._decode_value(value)
 
-    def get(self, id):
+    def get(self, id: str):
         document = {}
-        
+
         key = encoding.encode_str(self.collection_name + "/" + id)
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
-        
+
         if not iter.key():
             return {}
 
         while iter.valid():
             encoded_key = iter.key()
             encoded_value = iter.value()
-            
+
             decoded_key = encoding.decode_str(encoded_key).split("/")
             column = decoded_key[2]
             document[column] = self._decode_value(encoded_value)
@@ -58,7 +60,7 @@ class Index:
 
         return document
 
-    def _create_dir(self, dir_path, with_meta: bool = False):
+    def _create_dir(self, dir_path: str, with_meta: bool = False):
         if Path(dir_path).is_dir():
             return False
 
@@ -87,7 +89,7 @@ class Index:
 
         self._delete_old_logs()
 
-    def _add_index(self, index_specs):
+    def _add_index(self, index_specs: dict):
         meta_file = self.db_path + "/full_text/meta.json"
 
         with open(meta_file) as f:
@@ -98,7 +100,7 @@ class Index:
         with open(meta_file, "w") as f:
             json.dump(index_data, f, indent=4)
 
-    def _check_index_exists(self, index_name):
+    def _check_index_exists(self, index_name: str):
         self._create_dir(self.db_path + "/full_text", with_meta=True)
 
         if Path(self.db_path + "/full_text/" + index_name).is_dir():
@@ -106,7 +108,7 @@ class Index:
 
         return False
 
-    def get_index(self, index_name, with_schema: bool = True):
+    def get_index(self, index_name: str, with_schema: bool = True):
         fetched_schema = []
         schema_builder = tantivy.SchemaBuilder()
         schema_builder.add_text_field("_id", stored=True)
@@ -114,17 +116,15 @@ class Index:
         with open(self.db_path + "/full_text/meta.json") as f:
             index_data = json.load(f)
 
-        found_index = False
         for index in index_data:
             if index["name"] == index_name:
                 for field in index["schema"]:
                     if field != "_id":
                         schema_builder.add_text_field(field, stored=False)
-                        
+
                 if with_schema:
                     fetched_schema = index["schema"]
 
-                found_index = True
                 index_path = index["path"]
 
         # if not found_index: return None
@@ -203,7 +203,7 @@ class Index:
         searcher = index.searcher()
         parsed_query = index.parse_query(query, fields)
         text_results = searcher.search(parsed_query, limit).hits
-        
+
         for result in text_results:
             score, address = result
             document_id = searcher.doc(address)["_id"][0]
