@@ -197,7 +197,7 @@ class Collection:
             found_doc = True
 
         self.collection.write(writebatch)
-        
+
         return found_doc
 
     def _id_rows(self, id):
@@ -222,13 +222,17 @@ class Collection:
             self.delete(id)
 
     def get(self, id):
-        document = {"_id": id}
+        document = {}
 
         for encoded_key in self._id_rows(id):
             decoded_key = encoding.decode_str(encoded_key).split("/")
 
             column = decoded_key[2]
             document[column] = self._get(encoded_key)
+
+        if not document:
+            return None
+        document["_id"] = id
 
         return document
 
@@ -246,7 +250,7 @@ class Collection:
 
     def flush(self, wait: bool = False):
         self.collection.flush(wait)
-    
+
     def compact_range(self, start: bytes = None, end: bytes = None):
         if not start or not end:
             iter = self.collection.iter(ReadOptions(raw_mode=True))
@@ -254,5 +258,5 @@ class Collection:
             start = iter.key()
             iter.seek_to_last()
             end = iter.key()
-        
+
         self.collection.compact_range(start, end, CompactOptions())

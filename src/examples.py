@@ -17,13 +17,18 @@ doc_id = articles.insert(
 )
 
 # can also insert multiple documents, documents aren't bound to a specific schema
-articles.insert_batch([{
-        "title": "How Russian Action Movies Are Selling War",
-        "body": "Mihir Zaveri",
-    }, {
-        "title": "Apple Store in Oklahoma City Becomes Second to Unionize",
-        "number": 5,
-    }])
+articles.insert_batch(
+    [
+        {
+            "title": "How Russian Action Movies Are Selling War",
+            "body": "Mihir Zaveri",
+        },
+        {
+            "title": "Apple Store in Oklahoma City Becomes Second to Unionize",
+            "number": 5,
+        },
+    ]
+)
 
 # get entire document using its id
 document = articles.get(doc_id)
