@@ -10,6 +10,7 @@ Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as
     - [Create collection](#create-collection)
     - [Insert doucment](#insert-document)
     - [Get document](#get-document)
+    - [Delete document](#delete-document)
     - [Query](#query)
     - [Full-text search](#full-text-search)
     
@@ -56,7 +57,10 @@ The `insert` method will return a unique document `_id`.
 ```python
 news.get(doc_id)
 ```
-
+### Delete document
+```python
+news.delete(doc_id)
+```
 ### Query
 ```python
 news.find({"pi": 3.14, "real": True}, limit=10)

@@ -11,6 +11,7 @@ class Index:
         self,
         db_path,
         collection,
+        collection_name: str,
         name: str,
         fields: Optional[list] = None,
         encoding_types: dict = None,
@@ -20,12 +21,13 @@ class Index:
         self.fields = fields
         self.db_path = db_path
         self.collection = collection
+        self.collection_name = collection_name
         self.encoding_types = encoding_types
 
     def _decode_value(self, value):
         if not value:
             return None
-        decoded_data_type = self.encoding_types[value]
+        decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
 
         return decoded_value
@@ -36,18 +38,18 @@ class Index:
 
     def get(self, id):
         document = {}
-
-        key = encoding.encode_str(self.name + "/" + id)
+        
+        key = encoding.encode_str(self.collection_name + "/" + id)
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
-
+        
         if not iter.key():
             return {}
 
         while iter.valid():
             encoded_key = iter.key()
             encoded_value = iter.value()
-
+            
             decoded_key = encoding.decode_str(encoded_key).split("/")
             column = decoded_key[2]
             document[column] = self._decode_value(encoded_value)
@@ -118,7 +120,7 @@ class Index:
                 for field in index["schema"]:
                     if field != "_id":
                         schema_builder.add_text_field(field, stored=False)
-
+                        
                 if with_schema:
                     fetched_schema = index["schema"]
 
@@ -152,7 +154,7 @@ class Index:
         schema_builder.add_text_field("_id", stored=True)
 
         for field in self.fields:
-            schema_builder.add_text_field(field, stored=True)
+            schema_builder.add_text_field(field, stored=False)
             index_specs["schema"].append(field)
 
         schema = schema_builder.build()
@@ -201,7 +203,7 @@ class Index:
         searcher = index.searcher()
         parsed_query = index.parse_query(query, fields)
         text_results = searcher.search(parsed_query, limit).hits
-
+        
         for result in text_results:
             score, address = result
             document_id = searcher.doc(address)["_id"][0]

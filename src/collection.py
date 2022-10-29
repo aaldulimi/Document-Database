@@ -4,7 +4,7 @@ import string
 from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
 from src.index import Index
-import src.encoding as encoding 
+import src.encoding as encoding
 
 
 class Collection:
@@ -28,6 +28,7 @@ class Collection:
             4: bool,
             5: list,
         }
+
 
     def _create_dir(self, dir_path, with_meta: bool = False):
         if Path(dir_path).is_dir():
@@ -116,7 +117,7 @@ class Collection:
 
     def create_index(self, name: str, fields: list):
         index = Index(
-            self.path, self.collection, name, fields, encoding_types=self.encoding_types
+            self.path, self.collection, self.name, name, fields, encoding_types=self.encoding_types
         )
         index.create()
 
@@ -124,7 +125,7 @@ class Collection:
 
     def get_index(self, name: str):
         index = Index(
-            self.path, self.collection, name, encoding_types=self.encoding_types
+            self.path, self.collection, self.name, name, encoding_types=self.encoding_types
         )
         index.get_index(name)
 
@@ -171,13 +172,14 @@ class Collection:
 
         return results
 
-    def find(self, query: dict):
+    def find(self, query: dict, limit: int = 10):
         results = []
-        if not query:
+        if not query or not limit:
             return results
 
         field_list = list(query.keys())
 
+        count = 0
         for k, v in self.collection.items():
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
@@ -185,6 +187,9 @@ class Collection:
             if column in field_list:
                 if query[column] == self._decode_value(v):
                     results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if count == limit: break
 
         return results
 
@@ -233,7 +238,7 @@ class Collection:
         if not document:
             return None
         document["_id"] = id
-
+        
         return document
 
     def get_batch(self, id_list):
