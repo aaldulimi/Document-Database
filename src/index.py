@@ -2,7 +2,7 @@ from typing import Optional
 import tantivy
 import json
 from pathlib import Path
-import encoding
+import src.encoding as encoding
 from rocksdict import ReadOptions
 
 

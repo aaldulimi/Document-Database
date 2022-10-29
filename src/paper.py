@@ -1,5 +1,5 @@
 from pathlib import Path
-from collection import Collection
+from src.collection import Collection
 
 
 class PaperDB:

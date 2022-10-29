@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from typing import Any, Dict, List, Union
-from paper import PaperDB
+from src.paper import PaperDB
 from pydantic import BaseModel
 
 

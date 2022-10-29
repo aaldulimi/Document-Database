@@ -1,9 +1,16 @@
-from src.database import DocDB
-from src.document import Document
+from src.paper import PaperDB
+import dataclasses
+
+@dataclasses.dataclass
+class Document:
+    title: str
+    author: str
+    body: str
 
 class TestInsertions:
     def test_one_document(self):
-        db = DocDB("database/")
+        db = PaperDB("database/")
+        posts = db.collection("posts")
 
         doc = {
             "title": "Another document",
@@ -11,13 +18,15 @@ class TestInsertions:
             "body": "The content of the document"
         }
         
-        doc_id = db.insert(doc)
-        get_doc = db.get(doc_id)
+        doc_id = posts.insert(doc)
+        get_doc = posts.get(doc_id)
 
         assert doc == get_doc
 
     def test_batch_documents(self):
-        db = DocDB("database/")
+        db = PaperDB("database/")
+        posts = db.collection("posts")
+        
 
         doc_1 = {
             "_id": "doc1",
@@ -33,30 +42,32 @@ class TestInsertions:
         }
 
         docs = [doc_1, doc_2]
-        db.insert_batch(docs)
+        posts.insert_batch(docs)
 
-        get_doc_1 = db.get("doc1")
-        get_doc_2 = db.get("doc2")
+        get_doc_1 = posts.get("doc1")
+        get_doc_2 = posts.get("doc2")
 
         assert doc_1 == get_doc_1
         assert doc_2 == get_doc_2
 
 
     def test_one_object(self):
-        db = DocDB("database/")
+        db = PaperDB("database/")
+        posts = db.collection("posts")
 
         doc = Document("In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
             "Julie Turkewitz", "Two crises are converging at the perilous land bridge known as the Darién Gap...")
 
-        doc_id = db.insert_object(doc)
-        get_doc = db.get(doc_id)
+        doc_id = posts.insert_object(doc)
+        get_doc = posts.get(doc_id)
 
         del get_doc["_id"]
 
         assert doc.__dict__ == get_doc
 
     def test_batch_objects(self):
-        db = DocDB("database/")
+        db = PaperDB("database/")
+        posts = db.collection("posts")
 
         doc_1 = Document("In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
             "Julie Turkewitz", "Two crises are converging at the perilous land bridge known as the Darién Gap...")
@@ -65,7 +76,7 @@ class TestInsertions:
             "Jeanna Smialek and Alan Rappeport", "The Federal Reserve, like many central banks...")
 
         docs = [doc_1, doc_2]
-        db.insert_object_batch(docs)
+        posts.insert_object_batch(docs)
         
 
 
