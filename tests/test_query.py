@@ -1,9 +1,9 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 
 
 class TestQuery:
     def test_query(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         news = db.collection("news")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
@@ -15,7 +15,7 @@ class TestQuery:
         assert query_doc == insert_doc
 
     def test_empty_query(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         news = db.collection("news")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}

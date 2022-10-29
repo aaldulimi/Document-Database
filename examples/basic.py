@@ -1,7 +1,7 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 
 # connect to db
-db = PaperDB("database/")
+db = RockyDB("database/")
 
 # create a collection
 articles = db.collection("articles")

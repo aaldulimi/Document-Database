@@ -1,8 +1,8 @@
-# PaperDB 
+# RockyDB 
 Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
 
 ## Contents
-- [PaperDB](#paperdb)
+- [RockyDB](#rockydb)
   - [Contents](#contents)
   - [Features](#features)
   - [Installation](#installation)
@@ -34,9 +34,9 @@ Git clone this repo, cd into the root directory and run ```poetry install```. Th
 Full documentation will come later. For now, here are the basics:
 ### Create collection 
 ```python
-from src.paper import PaperDB
+from src.rocky import RockyDB
 
-db = PaperDB(path="database/")
+db = RockyDB(path="database/")
 news = db.collection("news")
 ```
 

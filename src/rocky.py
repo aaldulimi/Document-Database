@@ -2,7 +2,7 @@ from pathlib import Path
 from src.collection import Collection
 
 
-class PaperDB:
+class RockyDB:
     def __init__(self, path: str = "database/"):
         self.path = path
         self._create_dir(self.path)

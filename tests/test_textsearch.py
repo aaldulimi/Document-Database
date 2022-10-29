@@ -1,9 +1,9 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 
 
 class TestTextSearch:
     def test_search(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         news = db.collection("news_test")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}

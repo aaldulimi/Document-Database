@@ -1,9 +1,9 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 
 
 class TestGetDelete:
     def test_get(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         news = db.collection("news")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
@@ -15,7 +15,7 @@ class TestGetDelete:
         assert insert_doc == get_doc
 
     def test_delete(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         news = db.collection("news")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}

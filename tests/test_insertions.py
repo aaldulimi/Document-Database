@@ -1,4 +1,4 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 import dataclasses
 
 
@@ -11,7 +11,7 @@ class Document:
 
 class TestInsertions:
     def test_one_document(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         posts = db.collection("posts")
 
         doc = {
@@ -26,7 +26,7 @@ class TestInsertions:
         assert doc == get_doc
 
     def test_batch_documents(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         posts = db.collection("posts")
 
         doc_1 = {
@@ -48,7 +48,7 @@ class TestInsertions:
         assert doc_2 == get_doc_2
 
     def test_one_object(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         posts = db.collection("posts")
 
         doc = Document(
@@ -65,7 +65,7 @@ class TestInsertions:
         assert doc.__dict__ == get_doc
 
     def test_batch_objects(self):
-        db = PaperDB("database/")
+        db = RockyDB("database/")
         posts = db.collection("posts")
 
         doc_1 = Document(

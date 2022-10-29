@@ -1,4 +1,4 @@
-from src.paper import PaperDB
+from src.rocky import RockyDB
 import dataclasses
 
 
@@ -10,7 +10,7 @@ class Document:
 
 
 if __name__ == "__main__":
-    db = PaperDB()
+    db = RockyDB()
     news = db.collection("news")
 
     doc_1 = Document(

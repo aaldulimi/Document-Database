@@ -3,8 +3,7 @@ import tantivy
 import json
 from pathlib import Path
 import src.encoding as encoding
-from rocksdict import ReadOptions
-from rocksdict import Rdict
+from rocksdict import ReadOptions, Rdict
 
 
 class Index:
