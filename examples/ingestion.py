@@ -1,4 +1,4 @@
-from paper import PaperDB
+from src.paper import PaperDB
 import dataclasses
 
 
@@ -38,4 +38,5 @@ if __name__ == "__main__":
 
     doc_id = news.insert(doc_3)
 
-    print(news.get(doc_id))
+    document = news.get(doc_id)
+    print(document)

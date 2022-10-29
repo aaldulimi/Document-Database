@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DocDB"
-version = "0.2.7.8"
+version = "0.2.7.9"
 description = ""
 authors = ["Ahmed Al-Dulimi"]
 

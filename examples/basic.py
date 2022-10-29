@@ -1,4 +1,4 @@
-from paper import PaperDB
+from src.paper import PaperDB
 
 # connect to db
 db = PaperDB("database/")
