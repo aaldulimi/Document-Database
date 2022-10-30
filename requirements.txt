@@ -9,6 +9,7 @@ flake8==5.0.4; python_full_version >= "3.6.1"
 h11==0.14.0; python_version >= "3.7"
 idna==3.4; python_full_version >= "3.6.2" and python_version >= "3.7"
 iniconfig==1.1.1; python_version >= "3.7"
+lxml==4.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 mccabe==0.7.0; python_version >= "3.6" and python_full_version >= "3.6.1"
 mypy-extensions==0.4.3; python_version >= "3.7"
 packaging==21.3; python_version >= "3.7"
