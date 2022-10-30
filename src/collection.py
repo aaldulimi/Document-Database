@@ -185,17 +185,47 @@ class Collection:
         if not query or not limit:
             return results
 
-        field_list = list(query.keys())
+        lt = lte = gt = gte = {}
+        # need to iterate over keys and values once only
+        for spec in query.keys():
+            adv_query = spec.find("?")
+
+            if adv_query != -1:
+                query_type = spec[adv_query + 1:]
+                # can only be of one type below
+                if query_type == "lte":
+                    lte = query[spec]
+                    continue 
+
+                if query_type == "gte":
+                    gte = query[spec]
+                    continue 
+
+                if query_type == "lt":
+                    lt = query[spec]
+                    pass
+            
+                if query_type == "gt":
+                    gt = query[spec]
+                    continue
+            
+            
+                print(f"Unkown query type {query_type}")
+                return results
+
 
         count = 0
         for k, v in self.collection.items():
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
-            if column in field_list:
+            if column in query.keys():                    
+                # check for equal
                 if query[column] == self._decode_value(v):
                     results.append(self.get(decoded_key[1]))
                     count += 1
+                
+                # check for less than 
 
             if count == limit:
                 break
