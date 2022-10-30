@@ -114,7 +114,7 @@ class Collection:
 
         self._delete_old_logs()
 
-    def create_index(self, name: str, fields: list):
+    def create_index(self, name: str, fields: list, batch: bool = False):
         index = Index(
             self.path,
             self.collection,
@@ -123,7 +123,7 @@ class Collection:
             fields,
             encoding_types=self.encoding_types,
         )
-        index.create()
+        index.create(batch)
 
         return index
 
@@ -185,15 +185,71 @@ class Collection:
         if not query or not limit:
             return results
 
-        field_list = list(query.keys())
+        lt = {}
+        lte = {}
+        gt = {}
+        gte = {}
+        eq = {}
+        # need to iterate over keys and values once only
+        for spec, v in query.items():
+            q_loc = spec.find("?")
 
+            if q_loc != -1:
+                query_type = spec[q_loc + 1 :]
+
+                # can only be of one type below
+                if query_type == "lte":
+                    lte[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "gte":
+                    gte[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "lt":
+                    lt[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "gt":
+                    gt[spec[:q_loc]] = v
+                    continue
+
+                print(f"Unkown query type {query_type}")
+                return results
+
+            else:
+                # add to equals dict
+                eq[spec] = v
+
+        # iterate through all keys to find doc ids that match
         count = 0
         for k, v in self.collection.items():
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
-            if column in field_list:
+            # check for equal
+            if column in eq:
                 if query[column] == self._decode_value(v):
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in lte:
+                if self._decode_value(v) <= lte[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in gte:
+                if self._decode_value(v) >= gte[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in lt:
+                if self._decode_value(v) < lt[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in gt:
+                if self._decode_value(v) > gt[column]:
                     results.append(self.get(decoded_key[1]))
                     count += 1
 

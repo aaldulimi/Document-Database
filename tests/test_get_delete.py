@@ -4,7 +4,7 @@ from src.rocky import RockyDB
 class TestGetDelete:
     def test_get(self):
         db = RockyDB("database/")
-        news = db.collection("news")
+        news = db.collection("get_1")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
 
@@ -16,7 +16,7 @@ class TestGetDelete:
 
     def test_delete(self):
         db = RockyDB("database/")
-        news = db.collection("news")
+        news = db.collection("delete_1")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
 

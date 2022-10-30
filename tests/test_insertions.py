@@ -12,7 +12,7 @@ class Document:
 class TestInsertions:
     def test_one_document(self):
         db = RockyDB("database/")
-        posts = db.collection("posts")
+        posts = db.collection("doc")
 
         doc = {
             "title": "Another document",
@@ -27,7 +27,7 @@ class TestInsertions:
 
     def test_batch_documents(self):
         db = RockyDB("database/")
-        posts = db.collection("posts")
+        posts = db.collection("doc_batch")
 
         doc_1 = {
             "_id": "doc1",
@@ -49,7 +49,7 @@ class TestInsertions:
 
     def test_one_object(self):
         db = RockyDB("database/")
-        posts = db.collection("posts")
+        posts = db.collection("obj")
 
         doc = Document(
             "In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
@@ -66,7 +66,7 @@ class TestInsertions:
 
     def test_batch_objects(self):
         db = RockyDB("database/")
-        posts = db.collection("posts")
+        posts = db.collection("obj_batch")
 
         doc_1 = Document(
             "In Record Numbers, Venezuelans Risk a Deadly Trek to Reach the U.S. Border",
