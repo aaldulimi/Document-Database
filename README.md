@@ -65,9 +65,9 @@ news.delete(doc_id)
 ```
 ### Query
 ```python
-news.find({"pi": 3.14, "real": True}, limit=10)
+news.find({"pi?lt": 3.14, "real": True}, limit=10)
 ``` 
-The `limit` arg is optional. Currently working on implementing support for lt, gt, lte, gte, contains and range queries.
+The `limit` arg is optional. Supports exact, lte, lt, gt and gte queries. Currently working on implementing contains and range queries.
 ### Full-text search 
 ```python
 index = news.create_index("title_index", fields=["title"])
