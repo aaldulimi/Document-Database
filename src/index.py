@@ -139,7 +139,7 @@ class Index:
 
         return index
 
-    def create(self):
+    def create(self, batch: bool = True):
         if self._check_index_exists(self.name):
             return self.get_index(self.name)
 
@@ -182,7 +182,9 @@ class Index:
                     # append doc to index
                     current_doc["_id"] = [current_doc_id]
                     writer.add_document(tantivy.Document(**current_doc))
-                    writer.commit()
+                    print(current_doc)
+                    if not batch:
+                        writer.commit()
 
                 current_doc = {}
                 current_doc_id = doc_id
@@ -192,6 +194,9 @@ class Index:
 
                 if key_value:
                     current_doc[key_column] = [key_value]
+
+        if batch:
+            writer.commit()
 
         return index
 

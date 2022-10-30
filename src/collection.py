@@ -114,7 +114,7 @@ class Collection:
 
         self._delete_old_logs()
 
-    def create_index(self, name: str, fields: list):
+    def create_index(self, name: str, fields: list, batch: bool = False):
         index = Index(
             self.path,
             self.collection,
@@ -123,7 +123,7 @@ class Collection:
             fields,
             encoding_types=self.encoding_types,
         )
-        index.create()
+        index.create(batch)
 
         return index
 
@@ -185,47 +185,73 @@ class Collection:
         if not query or not limit:
             return results
 
-        lt = lte = gt = gte = {}
+        lt = {}
+        lte = {}
+        gt = {}
+        gte = {}
+        eq = {}
         # need to iterate over keys and values once only
-        for spec in query.keys():
-            adv_query = spec.find("?")
+        for spec, v in query.items():
+            q_loc = spec.find("?")
 
-            if adv_query != -1:
-                query_type = spec[adv_query + 1:]
+            if q_loc != -1:
+                query_type = spec[q_loc + 1 :]
+
                 # can only be of one type below
                 if query_type == "lte":
-                    lte = query[spec]
-                    continue 
+                    lte[spec[:q_loc]] = v
+                    continue
 
                 if query_type == "gte":
-                    gte = query[spec]
-                    continue 
+                    gte[spec[:q_loc]] = v
+                    continue
 
                 if query_type == "lt":
-                    lt = query[spec]
-                    pass
-            
-                if query_type == "gt":
-                    gt = query[spec]
+                    lt[spec[:q_loc]] = v
                     continue
-            
-            
+
+                if query_type == "gt":
+                    gt[spec[:q_loc]] = v
+                    continue
+
                 print(f"Unkown query type {query_type}")
                 return results
 
+            else:
+                # add to equals dict
+                eq[spec] = v
 
+        # iterate through all keys to find doc ids that match
         count = 0
         for k, v in self.collection.items():
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
-            if column in query.keys():                    
-                # check for equal
+            # check for equal
+            if column in eq:
                 if query[column] == self._decode_value(v):
                     results.append(self.get(decoded_key[1]))
                     count += 1
-                
-                # check for less than 
+
+            if column in lte:
+                if self._decode_value(v) <= lte[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in gte:
+                if self._decode_value(v) >= gte[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in lt:
+                if self._decode_value(v) < lt[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
+
+            if column in gt:
+                if self._decode_value(v) > gt[column]:
+                    results.append(self.get(decoded_key[1]))
+                    count += 1
 
             if count == limit:
                 break

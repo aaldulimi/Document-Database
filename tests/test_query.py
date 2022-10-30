@@ -4,7 +4,7 @@ from src.rocky import RockyDB
 class TestQuery:
     def test_query(self):
         db = RockyDB("database/")
-        news = db.collection("news")
+        news = db.collection("q1")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
 
@@ -16,7 +16,7 @@ class TestQuery:
 
     def test_empty_query(self):
         db = RockyDB("database/")
-        news = db.collection("news")
+        news = db.collection("q2")
 
         insert_doc = {"title": "Some random title", "year": 2022, "_id": "a1"}
 
@@ -25,3 +25,20 @@ class TestQuery:
         results = news.find({"title": "no"}, limit=1)
 
         assert results == []
+
+    def test_adv_query(self):
+        db = RockyDB("database/")
+        news = db.collection("q3")
+
+        for i in range(50):
+            news.insert({"number": i, "title": "something here"})
+
+        lt = news.find({"number?lt": 25}, limit=100)
+        lte = news.find({"number?lte": 25}, limit=100)
+        gt = news.find({"number?gt": 10}, limit=100)
+        gte = news.find({"number?gte": 10}, limit=100)
+
+        assert len(lt) == 25
+        assert len(lte) == 26
+        assert len(gt) == 39
+        assert len(gte) == 40
