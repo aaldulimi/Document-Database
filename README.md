@@ -1,5 +1,7 @@
 # RockyDB 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![CI](https://github.com/aaldulimi/rockydb/actions/workflows/integrate.yml/badge.svg)
+[![codecov](https://codecov.io/github/aaldulimi/RockyDB/branch/master/graph/badge.svg?token=6MZLCKX5IJ)](https://codecov.io/github/aaldulimi/RockyDB)
 
 Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
 

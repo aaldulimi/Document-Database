@@ -1,4 +1,4 @@
-name: RockyDB CI
+name: CI
 
 on:
   push:
@@ -27,3 +27,9 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      - name: Install pytest-cov and collect coverage
+        run: |
+          pip install pytest-cov
+          pytest --cov=./ --cov-report=xml
+      - name: Upload coverage reports to Codecov with GitHub Action
+        uses: codecov/codecov-action@v3
