@@ -1,6 +1,5 @@
 from src.rocky import RockyDB
 
-
 class TestQuery:
     def test_query(self):
         db = RockyDB("database/")
@@ -28,6 +27,7 @@ class TestQuery:
 
     def test_adv_query(self):
         db = RockyDB("database/")
+        db.clean_up()
         news = db.collection("q3")
 
         for i in range(50):

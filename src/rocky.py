@@ -1,6 +1,7 @@
+from codecs import ignore_errors
 from pathlib import Path
 from src.collection import Collection
-
+import shutil
 
 class RockyDB:
     def __init__(self, path: str = "database/"):
@@ -21,9 +22,11 @@ class RockyDB:
         # add to meta.json file that belongs to db (outside of all collections)
         return Collection(self.path, name)
 
-    def destroy(self):
+    def clean_up(self):
         database_path = Path(self.path)
-        database_files = list(database_path.iterdir())
+        shutil.rmtree(self.path, ignore_errors=True)
 
-        for filename in database_files:
-            filename.unlink()
+        # database_files = list(database_path.iterdir())
+
+        # for filename in database_files:
+        #     filename.unlink()
