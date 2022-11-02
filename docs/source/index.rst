@@ -1,20 +1,32 @@
-.. RockyDB documentation master file, created by
-   sphinx-quickstart on Wed Nov  2 23:43:53 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to RockyDB's documentation!
+RockyDB
 ===================================
+A NoSQL database written in Python. It 
+utilises rocksdb as a storage engine. 
+
 
 .. toctree::
-   :maxdepth: 2
    :caption: Contents:
+   :hidden:
+   :maxdepth: 4
+   :titlesonly:
+
+   self
+ 
+
+.. toctree::
+   :caption: Development:
+   :hidden:
+
+   changelog
+   license
 
 
+Installation
+------------
 
-Indices and tables
-==================
+You can install from pip
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. code::
+
+    pip install rockydb
