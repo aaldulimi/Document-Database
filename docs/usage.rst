@@ -14,7 +14,7 @@ Create a collection to store the documents (equivalent to a table in SQL)
     posts = db.collection("posts") # creating a collection named "posts"
 
 
-Basic usage
+Basic Usage
 -----------------
 
 Insert
