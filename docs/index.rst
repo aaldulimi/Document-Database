@@ -1,8 +1,3 @@
-.. RockyDB documentation master file, created by
-   sphinx-quickstart on Thu Nov  3 00:35:14 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 RockyDB
 ===================================
 NoSQL database written in Python
@@ -15,6 +10,14 @@ NoSQL database written in Python
 
    self
    usage
+
+.. toctree::
+   :caption: API Reference:
+   :hidden:
+
+   RockyDB
+   collection
+   index
 
 .. toctree::
    :caption: Development:
