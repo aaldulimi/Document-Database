@@ -258,7 +258,7 @@ class Collection:
 
         return results
 
-    def delete(self, id: bytes) -> bool:
+    def delete(self, id: str) -> bool:
         found_doc = False
         writebatch = WriteBatch(raw_mode=True)
 
@@ -291,7 +291,7 @@ class Collection:
         for id in id_list:
             self.delete(id)
 
-    def get(self, id: str):
+    def get(self, id: str) -> dict:
         document = {}
 
         for encoded_key in self._id_rows(id):

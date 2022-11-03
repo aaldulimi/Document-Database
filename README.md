@@ -21,15 +21,13 @@ Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as
 
 
 ## Features
-Currently under active development, however here are some things that you can do:
+Currently under active development, however here is the feature list so far:
 
-- **Create collection(s)**
-- **Insert document(s)**
-- **Delete document(s)**
+- **Create collections**
+- **Insert, get and delete documents**
 - **REST API**
 - **Full-text search**
 - **Query language**
-
 
 ## Installation 
 Git clone this repo, cd into the root directory and run ```poetry install```. This does require [poetry](https://python-poetry.org/) to be installed on your local machine. 
