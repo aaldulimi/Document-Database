@@ -25,3 +25,6 @@ html_static_path = ['_static']
 
 
 add_module_names = False
+
+
+pygments_style = "monokai"

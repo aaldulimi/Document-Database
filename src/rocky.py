@@ -1,7 +1,7 @@
-from codecs import ignore_errors
 from pathlib import Path
 from src.collection import Collection
 import shutil
+
 
 class RockyDB:
     def __init__(self, path: str = "database/"):

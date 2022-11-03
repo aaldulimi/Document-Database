@@ -1,6 +1,7 @@
 RockyDB
 ===================================
-NoSQL database written in Python
+A NoSQL database written in Python. It 
+utilises rocksdb as a storage engine. 
 
 .. toctree::
    :caption: Contents:
@@ -14,10 +15,10 @@ NoSQL database written in Python
 .. toctree::
    :caption: API Reference:
    :hidden:
-
-   RockyDB
-   collection
-   index
+   
+   Collection
+   index_api
+   
 
 .. toctree::
    :caption: Development:
@@ -28,8 +29,14 @@ NoSQL database written in Python
 
 Features 
 ------------
+Currently under active development, however here is the feature list so far:
 
-something here
+- **Create collections**
+- **Insert, get and delete documents**
+- **REST API**
+- **Full-text search**
+- **Query language**
+
 
 Installation
 ------------
@@ -39,7 +46,6 @@ Installation
    pip install rockydb
 
 
-Benchmarks
+Perfomance
 --------------
-
-
+Perfomance metrics will go here once document encoding and search algorithms are finalised.
