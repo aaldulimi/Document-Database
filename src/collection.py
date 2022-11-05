@@ -3,7 +3,7 @@ import json
 import string
 from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
-from src.index import Index
+# from src.index import Index
 import src.encoding as encoding
 
 
@@ -114,30 +114,30 @@ class Collection:
 
         self._delete_old_logs()
 
-    def create_index(self, name: str, fields: list, batch: bool = False):
-        index = Index(
-            self.path,
-            self.collection,
-            self.name,
-            name,
-            fields,
-            encoding_types=self.encoding_types,
-        )
-        index.create(batch)
+    # def create_index(self, name: str, fields: list, batch: bool = False):
+    #     index = Index(
+    #         self.path,
+    #         self.collection,
+    #         self.name,
+    #         name,
+    #         fields,
+    #         encoding_types=self.encoding_types,
+    #     )
+    #     index.create(batch)
 
-        return index
+    #     return index
 
-    def get_index(self, name: str):
-        index = Index(
-            self.path,
-            self.collection,
-            self.name,
-            name,
-            encoding_types=self.encoding_types,
-        )
-        index.get_index(name)
+    # def get_index(self, name: str):
+    #     index = Index(
+    #         self.path,
+    #         self.collection,
+    #         self.name,
+    #         name,
+    #         encoding_types=self.encoding_types,
+    #     )
+    #     index.get_index(name)
 
-        return index
+    #     return index
 
     def get_id_contains(self, field: str, value, max_count: int = None):
         all_ids = []

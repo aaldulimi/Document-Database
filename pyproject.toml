@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "RockyDB"
-version = "0.2.9.4"
+version = "0.2.9.8"
 description = "A NoSQL database."
 authors = ["Ahmed A."]
 license = "Apache-2.0"
@@ -28,16 +28,15 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-tantivy = "0.13.2"
-fastapi = "0.85.1"
-uvicorn = "0.19.0"
-flake8 = "5.0.4"
-black = "22.10.0"
-pytest = "7.2.0"
-lxml = "4.9.1"
-Sphinx = "5.3.0"
-furo = "2022.9.29"
-rocksdict = "0.3.2"
+rocksdict = "0.2.16"
+fastapi = "^0.85.1"
+uvicorn = "^0.19.0"
+flake8 = "^5.0.4"
+black = "^22.10.0"
+pytest = "^7.2.0"
+lxml = "^4.9.1"
+Sphinx = "^5.3.0"
+furo = "^2022.9.29"
 
 [tool.poetry.dev-dependencies]
 
