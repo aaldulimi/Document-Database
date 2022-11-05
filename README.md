@@ -33,7 +33,7 @@ Currently under active development, however here is the feature list so far:
 Git clone this repo, cd into the root directory and run ```poetry install```. This does require [poetry](https://python-poetry.org/) to be installed on your local machine. 
 
 ## Documentation
-Full documentation will come later. For now, here are the basics:
+Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics
 ### Create collection 
 ```python
 from src.rocky import RockyDB

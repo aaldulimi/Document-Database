@@ -431,7 +431,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 
 [[package]]
 name = "rocksdict"
-version = "0.2.16"
+version = "0.3.2"
 description = "Rocksdb Python Binding"
 category = "main"
 optional = false
@@ -660,7 +660,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "61e0859cdd435b647e38592172946a9c219903d34d39a02a509aeb2c333a2cae"
+content-hash = "96ee9209bec66f55cf0aa053b16e609aef4d21b807f306dbcaa50964591a6cc4"
 
 [metadata.files]
 alabaster = []
