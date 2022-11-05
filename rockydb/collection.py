@@ -3,8 +3,8 @@ import json
 import string
 from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
-# from src.index import Index
-import src.encoding as encoding
+# from rockydb.index import Index
+import rockydb.encoding as encoding
 
 
 class Collection:

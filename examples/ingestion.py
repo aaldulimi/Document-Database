@@ -1,4 +1,4 @@
-from src.rocky import RockyDB
+from rockydb import RockyDB
 import dataclasses
 
 

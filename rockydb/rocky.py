@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.collection import Collection
+from rockydb.collection import Collection
 import shutil
 
 
