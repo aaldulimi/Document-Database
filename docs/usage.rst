@@ -127,59 +127,60 @@ Example
 be empty if no documents matched the query.
 
 
-Text Search
-^^^^^^^^^^^^^^^^^
-Implement full-text search on all documents. This is a 2-step process. You must first 
-create an index, and then use that index to lookup documents.
+..  
+    Text Search
+    ^^^^^^^^^^^^^^^^^
+    Implement full-text search on all documents. This is a 2-step process. You must first 
+    create an index, and then use that index to lookup documents.
 
-Create Index 
-#################
+    Create Index 
+    #################
 
-.. code:: python
+    .. code:: python
 
-    index = posts.create_index(name: str, fields: list)
-
-
-**Parameters**
-
-**name** (required) - ``str``
-
-**fields** (required) - ``list``, the text fields of each document to index
-
-Example 
-
-.. code:: python
-
-    index = posts.create_index(name="title_index", fields=["title", "author"])
-
-**Returns** an ``Index`` object if the index has been successfully created. This line of code 
-might take some time to run depending on the size of the database, as it needs to go through 
-all documents.
+        index = posts.create_index(name: str, fields: list)
 
 
-Use Index 
-#################
+    **Parameters**
 
-.. code:: python
+    **name** (required) - ``str``
 
-    index.search(query: str, fields: list = None, limit: int = 10)
+    **fields** (required) - ``list``, the text fields of each document to index
 
-**Parameters**
+    Example 
 
-**query** (required) - ``str``
+    .. code:: python
 
-**fields** (optional) - ``list``
-    - a subset (or all) of the fields used when creating the index. Will use the same fields 
-    as the ones specified when creating the index.
+        index = posts.create_index(name="title_index", fields=["title", "author"])
 
-**limit** (optional): ``int``, default is ``10``
+    **Returns** an ``Index`` object if the index has been successfully created. This line of code 
+    might take some time to run depending on the size of the database, as it needs to go through 
+    all documents.
 
 
-Example 
+    Use Index 
+    #################
 
-.. code:: python
+    .. code:: python
 
-    docs = index.search("Housing", fields=["title"], limit=1)
+        index.search(query: str, fields: list = None, limit: int = 10)
 
-**Returns** a ``list`` containing all the ``documents`` found. ``list`` will 
-be empty if no documents matched the query.
+    **Parameters**
+
+    **query** (required) - ``str``
+
+    **fields** (optional) - ``list``
+        - a subset (or all) of the fields used when creating the index. Will use the same fields 
+        as the ones specified when creating the index.
+
+    **limit** (optional): ``int``, default is ``10``
+
+
+    Example 
+
+    .. code:: python
+
+        docs = index.search("Housing", fields=["title"], limit=1)
+
+    **Returns** a ``list`` containing all the ``documents`` found. ``list`` will 
+    be empty if no documents matched the query.

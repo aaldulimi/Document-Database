@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from typing import Any, Dict, List, Union
-from src.rocky import RockyDB
+from rockydb.rocky import RockyDB
 from pydantic import BaseModel
 
 
