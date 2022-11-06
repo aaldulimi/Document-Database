@@ -3,7 +3,7 @@
 ![CI](https://github.com/aaldulimi/rockydb/actions/workflows/integrate.yml/badge.svg)
 [![codecov](https://codecov.io/github/aaldulimi/RockyDB/branch/master/graph/badge.svg?token=6MZLCKX5IJ)](https://codecov.io/github/aaldulimi/RockyDB)
 
-Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
+Simple NoSQL database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
 
 ## Contents
 - [RockyDB](#rockydb)
@@ -29,13 +29,15 @@ Currently under active development, however here is the feature list so far:
 - **Full-text Search [IN-DEVELOPMENT]**
 
 ## Installation 
-```pip install rockydb```
+```
+pip install rockydb
+```
 
 ## Documentation
-Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics
+Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics:
 ### Create collection 
 ```python
-from src.rocky import RockyDB
+from rockydb import RockyDB
 
 db = RockyDB(path="database/")
 news = db.collection("news")
@@ -52,7 +54,7 @@ doc_id = news.insert({
   "real": True
 })
 ```
-The `insert` method will return a unique document `_id`.
+The `insert` method will return a unique document `_id`. `_id` will be created if document does not contain it.  
 
 ### Get document
 ```python
@@ -66,4 +68,4 @@ news.delete(doc_id)
 ```python
 news.find({"pi?lt": 3.14, "real": True}, limit=10)
 ``` 
-The `limit` arg is optional. Supports exact, lte, lt, gt and gte queries. Currently working on implementing contains and range queries.
+The `limit` arg is optional, default is 10. Supports exact, lte, lt, gt and gte queries.
