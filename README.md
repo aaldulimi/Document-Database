@@ -26,6 +26,7 @@ Currently under active development, however here is the feature list so far:
 - **Insert, get and delete documents**
 - **REST API**
 - **Query language**
+- **Full-text Search [IN-DEVELOPMENT]**
 
 ## Installation 
 ```pip install rockydb```
