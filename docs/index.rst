@@ -16,9 +16,7 @@ utilises rocksdb as a storage engine.
    :caption: API Reference:
    :hidden:
    
-   Collection
-   index_api
-   
+   collection   
 
 .. toctree::
    :caption: Development:
@@ -35,7 +33,6 @@ Currently under active development, however here is the feature list so far:
 - **Create collections**
 - **Insert, get and delete documents**
 - **REST API**
-- **Full-text search**
 - **Query language**
 
 

@@ -16,7 +16,6 @@ Simple document (i.e. NoSQL) database written in Python. It relies on rocksdb as
     - [Get document](#get-document)
     - [Delete document](#delete-document)
     - [Query](#query)
-    - [Full-text search](#full-text-search)
     
 
 
@@ -26,11 +25,10 @@ Currently under active development, however here is the feature list so far:
 - **Create collections**
 - **Insert, get and delete documents**
 - **REST API**
-- **Full-text search**
 - **Query language**
 
 ## Installation 
-Git clone this repo, cd into the root directory and run ```poetry install```. This does require [poetry](https://python-poetry.org/) to be installed on your local machine. 
+```pip install rockydb```
 
 ## Documentation
 Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics
@@ -68,9 +66,3 @@ news.delete(doc_id)
 news.find({"pi?lt": 3.14, "real": True}, limit=10)
 ``` 
 The `limit` arg is optional. Supports exact, lte, lt, gt and gte queries. Currently working on implementing contains and range queries.
-### Full-text search 
-```python
-index = news.create_index("title_index", fields=["title"])
-index.search("some query here", fields=["title"], limit=10)
-```
-The `fields` and `limit` args are both optional.

@@ -1,21 +1,19 @@
 Collection 
 ---------------
 
-.. autoclass:: src.collection.Collection
+.. autoclass:: rockydb.collection.Collection
 
 
-.. automethod:: src.collection.Collection.insert
-.. automethod:: src.collection.Collection.insert_object
-.. automethod:: src.collection.Collection.insert_batch
-.. automethod:: src.collection.Collection.insert_object_batch
-.. automethod:: src.collection.Collection.delete
-.. automethod:: src.collection.Collection.delete_batch        
-.. automethod:: src.collection.Collection.get
-.. automethod:: src.collection.Collection.get_batch   
-.. automethod:: src.collection.Collection.find   
-.. automethod:: src.collection.Collection.create_index
-.. automethod:: src.collection.Collection.get_index 
-.. automethod:: src.collection.Collection.destroy          
+.. automethod:: rockydb.collection.Collection.insert
+.. automethod:: rockydb.collection.Collection.insert_object
+.. automethod:: rockydb.collection.Collection.insert_batch
+.. automethod:: rockydb.collection.Collection.insert_object_batch
+.. automethod:: rockydb.collection.Collection.delete
+.. automethod:: rockydb.collection.Collection.delete_batch        
+.. automethod:: rockydb.collection.Collection.get
+.. automethod:: rockydb.collection.Collection.get_batch   
+.. automethod:: rockydb.collection.Collection.find   
+.. automethod:: rockydb.collection.Collection.destroy          
 
 
 
