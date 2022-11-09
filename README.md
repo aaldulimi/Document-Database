@@ -5,12 +5,17 @@
 
 Simple NoSQL database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
 
+## Installation 
+```
+pip install rockydb
+```
+
 ## Contents
 - [RockyDB](#rockydb)
-  - [Contents](#contents)
-  - [Features](#features)
-  - [Installation](#installation)
-  - [Documentation](#documentation)
+- [Installation](#installation)
+- [Contents](#contents)
+- [Features](#features)
+- [Documentation](#documentation)
     - [Create collection](#create-collection)
     - [Insert doucment](#insert-document)
     - [Get document](#get-document)
@@ -28,10 +33,12 @@ Currently under active development, however here is the feature list so far:
 - **Query language**
 - **Full-text Search [IN-DEVELOPMENT]**
 
-## Installation 
-```
-pip install rockydb
-```
+## Performance
+This benchmark is based on the [NBA Players Dataset](https://www.kaggle.com/datasets/drgilermo/nba-players-stats) which contains 3921 rows (unique documents).
+| Database      | Insertion |
+| ----------- | ----------- |
+| RockyDB      | 0.67       |
+| MongoDB   | 1.62        |
 
 ## Documentation
 Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics:
