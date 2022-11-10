@@ -36,18 +36,8 @@ document = articles.get(doc_id)
 # delete a document using its id
 articles.delete(doc_id)
 
-# # can create a full-text search index, specifying which fields to index
-# index = articles.create_index("title_index", fields=["title"])
-
-# # you can also use a old index that you created in an older session, this index will not be recreated
-# index = articles.get_index("title_index")
-
-# # once you have an index, can now use to perform full-text search on a subset (or all)
-# # of the fields you indexed
-# text_search = index.search(query="Russian", fields=["title"], limit=1)
-
-# new query method (in-development)
+# query documents
 query = articles.find({"author": "Mihir Zaveri", "number": 5})
 
 # print results
-# print(text_search)
+print(query)
