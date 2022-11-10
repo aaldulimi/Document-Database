@@ -7,6 +7,9 @@ import random
 import rockydb.encoding as encoding
 import threading
 import os
+# import taichi
+
+# taichi.init(arch=taichi.cpu)
 
 class Collection:
     def __init__(self, db_path: str, name: str):
@@ -16,6 +19,7 @@ class Collection:
 
         self.opt = Options(raw_mode=True)
         self.opt.increase_parallelism(os.cpu_count())
+        self.opt.set_allow_mmap_reads(True)
 
         self._create_dir(self.path, with_meta=False)
         self.collection = Rdict(path=self.path, options=self.opt)
@@ -232,7 +236,7 @@ class Collection:
 
         # iterate through all keys to find doc ids that match
         count = 0
-        for k, v in self.collection.items():
+        for k, v in self.collection.items(read_opt=ReadOptions().fill_cache(False)):
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 

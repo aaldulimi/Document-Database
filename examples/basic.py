@@ -6,7 +6,7 @@ import pandas as pd
 import threading
 
 # connect to db
-db = RockyDB("database2/")
+db = RockyDB("database/")
 
 # create a collection
 articles = db.collection("articles")
