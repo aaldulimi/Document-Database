@@ -233,7 +233,7 @@ class Collection:
 
         # iterate through all keys to find doc ids that match
         count = 0
-        for k, v in self.collection.items():
+        for k, v in self.collection.items(read_opt=ReadOptions().set_tailing(True)):
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
