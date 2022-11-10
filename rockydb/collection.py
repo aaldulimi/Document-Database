@@ -5,11 +5,8 @@ from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
-import threading
 import os
-# import taichi
 
-# taichi.init(arch=taichi.cpu)
 
 class Collection:
     def __init__(self, db_path: str, name: str):
@@ -187,11 +184,6 @@ class Collection:
                 results.append(doc_dict)
 
         return results
-    
-    def find_fast(self, query: dict, limit: int = 10):
-        thread = threading.Thread(target=self.find, args=(query, limit,))
-        thread.start()
-        thread.join()
 
     def find(self, query: dict, limit: int = 10):
         results = []
@@ -236,7 +228,13 @@ class Collection:
 
         # iterate through all keys to find doc ids that match
         count = 0
-        for k, v in self.collection.items(read_opt=ReadOptions().fill_cache(False)):
+        read_opt = ReadOptions(raw_mode=True)
+        read_opt.fill_cache(False)
+        read_opt.set_readahead_size(4_194_304)
+        read_opt.set_tailing(True)
+        read_opt.set_pin_data(True)
+
+        for k, v in self.collection.items(read_opt=read_opt):
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
