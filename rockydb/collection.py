@@ -1,7 +1,14 @@
 from pathlib import Path
 import json
 import string
-from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
+from rocksdict import (
+    Rdict, 
+    Options, 
+    ReadOptions, 
+    WriteBatch, 
+    CompactOptions,
+    PlainTableFactoryOptions
+)
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
@@ -69,7 +76,7 @@ class Collection:
 
         return doc_id
 
-    def insert(self, document: dict) -> str:
+    def insert(self, document: dict, wb: WriteBatch = None) -> str:
         # encoding method
         # collection_id/doc_id/col_id -> datatype_id/value
 
@@ -88,14 +95,24 @@ class Collection:
 
                 encoded_key = encoding.encode_str(key_string)
                 encoded_value = encoded_data_type + encoded_data
-                self.collection[encoded_key] = encoded_value
+
+                # insert in db
+                if wb:
+                    wb[encoded_key] = encoded_value
+                else:
+                    self.collection[encoded_key] = encoded_value
 
         self._delete_old_logs()
         return doc_id
 
     def insert_batch(self, document_list: list):
+        wb = WriteBatch(raw_mode=True)
+
         for document in document_list:
-            self.insert(document)
+            self.insert(document, wb)
+
+        self.collection.write(wb)
+        
 
     def insert_object_batch(self, object_list: list):
         for object in object_list:
