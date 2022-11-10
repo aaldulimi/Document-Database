@@ -94,7 +94,7 @@ class Collection:
         return doc_id
 
     def insert_batch(self, document_list: list):
-        wb = WriteBatch()
+        wb = WriteBatch(raw_mode=True)
 
         for document in document_list:
             self.insert(document, wb)
