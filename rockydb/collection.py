@@ -5,6 +5,7 @@ from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
+from multiprocessing import Process
 
 
 class Collection:
@@ -179,6 +180,11 @@ class Collection:
                 results.append(doc_dict)
 
         return results
+    
+    # def find_fast(self, query: dict, limit: int = 10):
+    #     process = Process(target=self.find, args=(query, limit))
+    #     process.start()
+    #     process.join()
 
     def find(self, query: dict, limit: int = 10):
         results = []
