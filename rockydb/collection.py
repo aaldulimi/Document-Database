@@ -5,8 +5,8 @@ from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
-from multiprocessing import Process
-
+import threading
+import os
 
 class Collection:
     def __init__(self, db_path: str, name: str):
@@ -14,8 +14,11 @@ class Collection:
         self.name = name
         self.path = self.db_path + name
 
+        self.opt = Options(raw_mode=True)
+        self.opt.increase_parallelism(os.cpu_count())
+
         self._create_dir(self.path, with_meta=False)
-        self.collection = Rdict(path=self.path, options=Options(raw_mode=True))
+        self.collection = Rdict(path=self.path, options=self.opt)
 
         self.encoding_types = {
             str: 1,
@@ -181,10 +184,10 @@ class Collection:
 
         return results
     
-    # def find_fast(self, query: dict, limit: int = 10):
-    #     process = Process(target=self.find, args=(query, limit))
-    #     process.start()
-    #     process.join()
+    def find_fast(self, query: dict, limit: int = 10):
+        thread = threading.Thread(target=self.find, args=(query, limit,))
+        thread.start()
+        thread.join()
 
     def find(self, query: dict, limit: int = 10):
         results = []

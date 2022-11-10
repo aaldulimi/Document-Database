@@ -1,15 +1,36 @@
 import sys
-# sys.path.append('some path here')
+sys.path.append('/Users/flyinshark/Desktop/RockyDB/')
 from rockydb import RockyDB
-from loky import get_reusable_executor
-
+import time
+import pandas as pd
+import threading
 
 # connect to db
-db = RockyDB("database/")
+db = RockyDB("database2/")
 
 # create a collection
 articles = db.collection("articles")
 
+# df = pd.read_csv('examples/Players.csv')
+# df = df.rename(columns={'id': '_id'})
+
+# df = df.astype({"_id": str})
+
+# # =========================
+# players = df.to_dict(orient='records')
+
+
+# start = time.time()
+
+# for player in players:
+#     del player["_id"]
+#     articles.insert(player)
+
+# # articles.insert_batch(players)
+
+# end = time.time()
+
+# print("total time:", end - start)
 # insert a document (_id will be generated if its not included in the document)
 # will return the _id of the document
 # doc_id = articles.insert(
@@ -40,15 +61,16 @@ articles = db.collection("articles")
 # # delete a document using its id
 # articles.delete(doc_id)
 
-# new query method (in-development)
-import time
-executor = get_reusable_executor(max_workers=4, timeout=10)
 
 
 start = time.time()
-# query = articles.find({"author": "Mihir Zaveri", "number": 5})
-res = executor.submit(articles.find, {"author": "Mihir Zaveri", "number": 5})
+# thread.start()
+# thread.join()
+query = articles.find({"height?gt": 178})
 end = time.time()
 
-# print results
+# # print results
 print("total time:", end - start)
+
+
+# .003 without parrallelism 
