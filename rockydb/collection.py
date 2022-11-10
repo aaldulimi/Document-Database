@@ -1,7 +1,14 @@
 from pathlib import Path
 import json
 import string
-from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
+from rocksdict import (
+    Rdict, 
+    Options, 
+    ReadOptions, 
+    WriteBatch, 
+    CompactOptions,
+    PlainTableFactoryOptions
+)
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
@@ -14,7 +21,9 @@ class Collection:
         self.path = self.db_path + name
 
         self._create_dir(self.path, with_meta=False)
-        self.collection = Rdict(path=self.path, options=Options(raw_mode=True))
+
+        self.opt = Options(raw_mode=True)
+        self.collection = Rdict(path=self.path, options=self.opt)
 
         self.encoding_types = {
             str: 1,
@@ -94,7 +103,7 @@ class Collection:
         return doc_id
 
     def insert_batch(self, document_list: list):
-        wb = WriteBatch()
+        wb = WriteBatch(raw_mode=True)
 
         for document in document_list:
             self.insert(document, wb)
@@ -233,7 +242,7 @@ class Collection:
 
         # iterate through all keys to find doc ids that match
         count = 0
-        for k, v in self.collection.items():
+        for k, v in self.collection.items(read_opt=ReadOptions().set_tailing(True)):
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
