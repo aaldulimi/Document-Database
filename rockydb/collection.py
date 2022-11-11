@@ -1,10 +1,18 @@
 from pathlib import Path
 import json
 import string
-from rocksdict import Rdict, Options, ReadOptions, WriteBatch, CompactOptions
+from rocksdict import (
+    Rdict, 
+    Options, 
+    ReadOptions, 
+    WriteBatch, 
+    CompactOptions,
+    PlainTableFactoryOptions
+)
 import random
 # from rockydb.index import Index
 import rockydb.encoding as encoding
+import os
 
 
 class Collection:
@@ -13,8 +21,14 @@ class Collection:
         self.name = name
         self.path = self.db_path + name
 
+        self.opt = Options(raw_mode=True)
+        self.opt.increase_parallelism(os.cpu_count())
+        self.opt.set_allow_mmap_reads(True)
+        self.opt.set_write_buffer_size(0x10000000)
+        self.opt.set_plain_table_factory(PlainTableFactoryOptions())
+
         self._create_dir(self.path, with_meta=False)
-        self.collection = Rdict(path=self.path, options=Options(raw_mode=True))
+        self.collection = Rdict(path=self.path, options=self.opt)
 
         self.encoding_types = {
             str: 1,
@@ -64,7 +78,7 @@ class Collection:
 
         return doc_id
 
-    def insert(self, document: dict) -> str:
+    def insert(self, document: dict, wb: WriteBatch = None) -> str:
         # encoding method
         # collection_id/doc_id/col_id -> datatype_id/value
 
@@ -83,14 +97,24 @@ class Collection:
 
                 encoded_key = encoding.encode_str(key_string)
                 encoded_value = encoded_data_type + encoded_data
-                self.collection[encoded_key] = encoded_value
+
+                # insert in db
+                if wb is not None:
+                    wb[encoded_key] = encoded_value
+                else:
+                    self.collection[encoded_key] = encoded_value
 
         self._delete_old_logs()
         return doc_id
 
     def insert_batch(self, document_list: list):
+        wb = WriteBatch(raw_mode=True)
+
         for document in document_list:
-            self.insert(document)
+            self.insert(document, wb)
+
+        self.collection.write(wb)
+        
 
     def insert_object_batch(self, object_list: list):
         for object in object_list:
@@ -99,6 +123,7 @@ class Collection:
     def _decode_value(self, value: bytes):
         if not value:
             return None
+            
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
 
@@ -223,7 +248,13 @@ class Collection:
 
         # iterate through all keys to find doc ids that match
         count = 0
-        for k, v in self.collection.items():
+        read_opt = ReadOptions(raw_mode=True)
+        read_opt.fill_cache(False)
+        read_opt.set_readahead_size(8_388_608)
+        read_opt.set_tailing(True)
+        read_opt.set_pin_data(True)
+
+        for k, v in self.collection.items(read_opt=read_opt):
             decoded_key = encoding.decode_str(k).split("/")
             column = decoded_key[2]
 
