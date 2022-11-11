@@ -99,6 +99,7 @@ class Collection:
                 encoded_value = encoded_data_type + encoded_data
 
                 # insert in db
+                
                 if wb is not None:
                     wb[encoded_key] = encoded_value
                 else:
