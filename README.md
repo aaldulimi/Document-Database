@@ -5,12 +5,17 @@
 
 Simple NoSQL database written in Python. It relies on rocksdb as its storage engine. This is more of a Proof-of-concept than a production-ready database. 
 
+## Installation 
+```
+pip install rockydb
+```
+
 ## Contents
 - [RockyDB](#rockydb)
-  - [Contents](#contents)
-  - [Features](#features)
-  - [Installation](#installation)
-  - [Documentation](#documentation)
+- [Installation](#installation)
+- [Contents](#contents)
+- [Features](#features)
+- [Documentation](#documentation)
     - [Create collection](#create-collection)
     - [Insert doucment](#insert-document)
     - [Get document](#get-document)
@@ -28,10 +33,14 @@ Currently under active development, however here is the feature list so far:
 - **Query language**
 - **Full-text Search [IN-DEVELOPMENT]**
 
-## Installation 
-```
-pip install rockydb
-```
+## Performance
+Dataset: [NBA Players Dataset](https://www.kaggle.com/datasets/drgilermo/nba-players-stats).
+Computer: MacBook Pro (13-inch, 2019).
+RockyDB is still in its early days, these results will likely get better in the future. 
+| Database      | Insert | Get | Query | Delete 
+| -----------| -----------:| -----------:| -----------:| -----------:| 
+| RockyDB      | **0.00074**       | **0.00038** | 0.00014 | **0.00023**
+| MongoDB   | 0.04436        | 0.04518 | **0.00004**  | 0.04264
 
 ## Documentation
 Full [Documentation](https://rockydb.readthedocs.io/en/latest/). Below are the basics:
@@ -47,9 +56,9 @@ news = db.collection("news")
 Supported data types: `str`, `int`, `float`, `bool` and `list`. Will support more later. 
 ```python
 doc_id = news.insert({
-  "title": "Elon Musk Completes $44 Billion Deal to Own Twitter",
+  "title": "Can store strings",
   "year": 2022,
-  "people": ["Elon Musk"],
+  "people": ["lists", "are", "fine", "too"],
   "pi": 3.14,
   "real": True
 })

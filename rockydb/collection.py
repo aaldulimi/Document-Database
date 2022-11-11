@@ -24,6 +24,8 @@ class Collection:
         self.opt = Options(raw_mode=True)
         self.opt.increase_parallelism(os.cpu_count())
         self.opt.set_allow_mmap_reads(True)
+        self.opt.set_write_buffer_size(0x10000000)
+        self.opt.set_plain_table_factory(PlainTableFactoryOptions())
 
         self._create_dir(self.path, with_meta=False)
         self.collection = Rdict(path=self.path, options=self.opt)
@@ -97,7 +99,8 @@ class Collection:
                 encoded_value = encoded_data_type + encoded_data
 
                 # insert in db
-                if wb:
+                
+                if wb is not None:
                     wb[encoded_key] = encoded_value
                 else:
                     self.collection[encoded_key] = encoded_value
@@ -121,6 +124,7 @@ class Collection:
     def _decode_value(self, value: bytes):
         if not value:
             return None
+            
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
 
@@ -247,7 +251,7 @@ class Collection:
         count = 0
         read_opt = ReadOptions(raw_mode=True)
         read_opt.fill_cache(False)
-        read_opt.set_readahead_size(4_194_304)
+        read_opt.set_readahead_size(8_388_608)
         read_opt.set_tailing(True)
         read_opt.set_pin_data(True)
 
