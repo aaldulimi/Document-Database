@@ -7,10 +7,9 @@ from rocksdict import (
     ReadOptions, 
     WriteBatch, 
     CompactOptions,
-    PlainTableFactoryOptions
 )
 import random
-# from rockydb.index import Index
+from rockydb.index import Index
 import rockydb.encoding as encoding
 import os
 
@@ -25,9 +24,8 @@ class Collection:
         self.opt.increase_parallelism(os.cpu_count())
         self.opt.set_allow_mmap_reads(True)
         self.opt.set_write_buffer_size(0x10000000)
-        self.opt.set_plain_table_factory(PlainTableFactoryOptions())
 
-        self._create_dir(self.path, with_meta=False)
+        self._create_dir(self.path, with_meta=True)
         self.collection = Rdict(path=self.path, options=self.opt)
 
         self.encoding_types = {
@@ -80,7 +78,8 @@ class Collection:
 
     def insert(self, document: dict, wb: WriteBatch = None) -> str:
         # encoding method
-        # collection_id/doc_id/col_id -> datatype_id/value
+        # collection_id/index_id/order_no/doc_id/col_id -> datatype_id/value
+        # order_no is for sorting, will be 0 for default index
 
         if "_id" not in document:
             document["_id"] = self._generate_id()
@@ -89,7 +88,7 @@ class Collection:
 
         for key, value in document.items():
             if key != "_id":
-                key_string = f"{self.name}/{doc_id}/{key}"
+                key_string = f"{self.name}/0/0/{doc_id}/{key}"
                 encoded_data = encoding.encode_this(value)
                 encoded_data_type = encoding.encode_int(
                     self.encoding_types[type(value)]
@@ -99,7 +98,6 @@ class Collection:
                 encoded_value = encoded_data_type + encoded_data
 
                 # insert in db
-                
                 if wb is not None:
                     wb[encoded_key] = encoded_value
                 else:
@@ -170,12 +168,12 @@ class Collection:
 
         for key in self._iterate_keys():
             decoded_key = encoding.decode_str(key).split("/")
-            key_column = decoded_key[2]
+            key_column = decoded_key[4]
             key_value = self._get(key)
 
             if (field == key_column) and key_value:
                 if value in self._get(key):
-                    row_id = decoded_key[1]
+                    row_id = decoded_key[3]
                     all_ids.append(row_id)
 
             if max_count:
@@ -195,18 +193,18 @@ class Collection:
 
                 for key in self._iterate_keys():
                     decoded_key = encoding.decode_str(key).split("/")
-                    search_doc_id = decoded_key[1]
+                    search_doc_id = decoded_key[3]
 
                     if search_doc_id == doc_id:
 
-                        column_name = decoded_key[2]
+                        column_name = decoded_key[4]
                         doc_dict[column_name] = self._get(key)
 
                 results.append(doc_dict)
 
         return results
 
-    def find(self, query: dict, limit: int = 10):
+    def find(self, query: dict, limit: int = 1):
         results = []
         if not query or not limit:
             return results
@@ -257,32 +255,32 @@ class Collection:
 
         for k, v in self.collection.items(read_opt=read_opt):
             decoded_key = encoding.decode_str(k).split("/")
-            column = decoded_key[2]
+            column = decoded_key[4]
 
             # check for equal
             if column in eq:
                 if query[column] == self._decode_value(v):
-                    results.append(self.get(decoded_key[1]))
+                    results.append(self.get(decoded_key[3]))
                     count += 1
 
             if column in lte:
                 if self._decode_value(v) <= lte[column]:
-                    results.append(self.get(decoded_key[1]))
+                    results.append(self.get(decoded_key[3]))
                     count += 1
 
             if column in gte:
                 if self._decode_value(v) >= gte[column]:
-                    results.append(self.get(decoded_key[1]))
+                    results.append(self.get(decoded_key[3]))
                     count += 1
 
             if column in lt:
                 if self._decode_value(v) < lt[column]:
-                    results.append(self.get(decoded_key[1]))
+                    results.append(self.get(decoded_key[3]))
                     count += 1
 
             if column in gt:
                 if self._decode_value(v) > gt[column]:
-                    results.append(self.get(decoded_key[1]))
+                    results.append(self.get(decoded_key[3]))
                     count += 1
 
             if count == limit:
@@ -303,7 +301,7 @@ class Collection:
         return found_doc
 
     def _id_rows(self, id: str):
-        key = encoding.encode_str(self.name + "/" + id)
+        key = encoding.encode_str(self.name + "/0/0/" + id)
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
 
@@ -313,9 +311,9 @@ class Collection:
         while iter.valid():
             encoded_key = iter.key()
             decoded_key = encoding.decode_str(encoded_key).split("/")
-            if decoded_key[1] != id:
+            if decoded_key[3] != id:
                 break
-
+            
             yield encoded_key
             iter.next()
 
@@ -325,17 +323,17 @@ class Collection:
 
     def get(self, id: str) -> dict:
         document = {}
-
+        
         for encoded_key in self._id_rows(id):
             decoded_key = encoding.decode_str(encoded_key).split("/")
 
-            column = decoded_key[2]
+            column = decoded_key[4]
             document[column] = self._get(encoded_key)
 
         if not document:
             return None
-        document["_id"] = id
 
+        document["_id"] = id
         return document
 
     def get_batch(self, id_list: list):
@@ -346,6 +344,34 @@ class Collection:
             results.append(document)
 
         return results
+
+    
+    def create_index(self, name: str, field: str):
+        index_id = 0
+        # check if index already exists
+        with open(self.path + "/meta.json", "r") as f:
+            index_data = json.load(f)
+        
+        for index in index_data:
+            if index["name"] == name:
+                print("Index already exists, please choose a different index name")
+                return None
+            
+            if index["id"] >= index_id:
+                index_id = index["id"]
+
+        index = Index(self.collection, self.name, name, index_id + 1, field)
+        index_spec = index.create()
+
+        # update meta file once index fully created
+        index_data.append(index_spec)
+        with open(self.path + "/meta.json", "w") as f:
+            json.dump(index_data)
+
+        return index
+
+    def delete_index(self, name: str):
+        pass
 
     def destroy(self):
         Rdict.destroy(self.path)
