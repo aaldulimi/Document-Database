@@ -2,10 +2,10 @@ from pathlib import Path
 import json
 import string
 from rocksdict import (
-    Rdict, 
-    Options, 
-    ReadOptions, 
-    WriteBatch, 
+    Rdict,
+    Options,
+    ReadOptions,
+    WriteBatch,
     CompactOptions,
 )
 import random
@@ -113,7 +113,6 @@ class Collection:
             self.insert(document, wb)
 
         self.collection.write(wb)
-        
 
     def insert_object_batch(self, object_list: list):
         for object in object_list:
@@ -122,7 +121,7 @@ class Collection:
     def _decode_value(self, value: bytes):
         if not value:
             return None
-            
+
         decoded_data_type = self.encoding_types[value[0]]
         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
 
@@ -313,7 +312,7 @@ class Collection:
             decoded_key = encoding.decode_str(encoded_key).split("/")
             if decoded_key[3] != id:
                 break
-            
+
             yield encoded_key
             iter.next()
 
@@ -323,7 +322,7 @@ class Collection:
 
     def get(self, id: str) -> dict:
         document = {}
-        
+
         for encoded_key in self._id_rows(id):
             decoded_key = encoding.decode_str(encoded_key).split("/")
 
@@ -345,18 +344,17 @@ class Collection:
 
         return results
 
-    
     def create_index(self, name: str, field: str):
         index_id = 0
         # check if index already exists
         with open(self.path + "/meta.json", "r") as f:
             index_data = json.load(f)
-        
+
         for index in index_data:
             if index["name"] == name:
                 print("Index already exists, please choose a different index name")
                 return None
-            
+
             if index["id"] >= index_id:
                 index_id = index["id"]
 
