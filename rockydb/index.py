@@ -4,7 +4,7 @@ from rocksdict import ReadOptions
 
 class Index:
     def __init__(
-        self, collection, name: str, collection_name: str, index_id: int, field: str
+        self, collection, collection_name: str, name: str, index_id: int, field: str
     ):
         self.collection = collection
         self.name = name
@@ -16,16 +16,20 @@ class Index:
         key = encoding.encode_str(self.collection_name + "/0/0/")
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
-
+        
         if not iter.key():
             return
-
+        
         while iter.valid():
             encoded_key = iter.key()
             encoded_value = iter.value()
             decoded_key = encoding.decode_str(encoded_key).split("/")
-
+            
+            if decoded_key[0] != self.collection_name:
+                break
+            
             if decoded_key[4] == self.field:
+                # returns (doc_id, bytes)
                 yield (decoded_key[3], encoded_value)
 
             iter.next()
@@ -39,32 +43,56 @@ class Index:
         # tmp/block_id/order_no/doc_id -> datatype_id/value
         block = {}
         for k, v in self._iter_default_db():
-            tmp_key = encoding.encode_str(f"tmp/{block_id}/{i}/{k}")
+            
+            tmp_key = f"{block_id}/{k}"
             block[tmp_key] = v
             i += 1
-
+    
             if i == 100:
                 block_sorted = dict(sorted(block.items(), key=lambda item: item[1]))
-                self._insert_tmp_kv(block_sorted)
+                block_rename = self._rename_block_keys(block_sorted)
+                self._insert_tmp_kv(block_rename)
                 block_id += 1
                 i = 0
                 block = {}
 
+                print("FULL DICT", block_id)
+
         # add remaining kv
         if block:
             block_sorted = dict(sorted(block.items(), key=lambda item: item[1]))
-            self._insert_tmp_kv(block_id, block_sorted)
-
+            block_renamed = self._rename_block_keys(block_sorted)
+            self._insert_tmp_kv(block_renamed)
+            print("PARTIAL DICT")
+        
         # now merge sort all the blocks together
         self._merge_blocks(block_id)
 
         index_specs = {"name": self.name, "field": self.field}
         return index_specs
 
+    def _rename_block_keys(self, block: dict):
+        result = {}
+        i = 0
+
+        for key, value in block.items():
+            # current key: str block_id/doc_id, need to be tmp/block_id/order_no/doc_id
+            split_key = key.split("/")
+            new_key = f"tmp/{split_key[0]}/{i}/{split_key[1]}"
+
+            result[new_key] = value
+            i += 1
+        
+        return result
+
+
     def _insert_tmp_kv(self, kv_pairs: dict):
         # insert all blocks of sorted kv pairs back into db
         for k, v in kv_pairs.items():
+            k = encoding.encode_str(k)
             self.collection[k] = v
+
+            # print(k, "->", encoding.decode_this(int, v))
 
     def _merge_blocks(self, block_count: int):
         # merge all blocks together, have pointers to start of blocks
@@ -75,16 +103,19 @@ class Index:
         base_block = 0
 
         # keep track of all pointer positions 
-        block_i_count = [0 for _ in range(block_count + 1)]
+        block_i_count = [0 for _ in range(block_count)]
 
         while 1:
-            base_key = encoding.encode_str(f"tmp/{base_block}/{block_i_count[base_block]}/")
+            base_key = encoding.encode_str(f"tmp/{base_block}")
             iter.seek(base_key)
             k = iter.key()
             k_value = iter.value()
 
+            # print(iter.key(), iter.value())
+            # print(block_i_count)
+            
             block_id_increment = 0
-            for block_id in range(block_count + 1):
+            for block_id in range(block_count):
                 # for each block, start at first key and iterate through all other 99 keys
                 # check if block is complete, if so, skip it
                 if block_i_count[block_id] == -1:
@@ -93,7 +124,8 @@ class Index:
                 block_key = encoding.encode_str(f"tmp/{block_id}/{block_i_count[block_id]}/")
                 iter.seek(block_key)
                 block_k_value = iter.value()
-
+                
+                # print("block", block_id, "key", block_key, "value", block_k_value)
                 if block_k_value < k_value:
                     k = iter.key()
                     k_value = block_k_value
@@ -125,13 +157,14 @@ class Index:
             decoded_doc_id = encoding.decode_str(k).split("/")[3]
             encoded_doc_id = encoding.encode_str(decoded_doc_id)
             encoded_data_type = encoded_data_type = encoding.encode_int(1) # encode id for str is 1
-
+            
+            # print("value:", encoding.decode_this(int, k_value))
             self.collection[new_key] = encoded_data_type + encoded_doc_id
             key_count += 1
 
 
     def get_index(self, name: str):
         pass
-    
+
     def binary_search(self, value):
         pass
