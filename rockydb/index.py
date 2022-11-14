@@ -1,6 +1,6 @@
 import rockydb.encoding as encoding
 from rocksdict import ReadOptions
-
+import time
 
 class Index:
     def __init__(
@@ -56,14 +56,15 @@ class Index:
                 i = 0
                 block = {}
 
-                print("FULL DICT", block_id)
+                # print("FULL DICT", block_id)
 
         # add remaining kv
         if block:
             block_sorted = dict(sorted(block.items(), key=lambda item: item[1]))
             block_renamed = self._rename_block_keys(block_sorted)
             self._insert_tmp_kv(block_renamed)
-            print("PARTIAL DICT")
+            block_id += 1
+            # print("PARTIAL DICT")
         
         # now merge sort all the blocks together
         self._merge_blocks(block_id)
@@ -104,17 +105,28 @@ class Index:
 
         # keep track of all pointer positions 
         block_i_count = [0 for _ in range(block_count)]
+        block_id_increment = 0
 
         while 1:
-            base_key = encoding.encode_str(f"tmp/{base_block}")
+            if block_i_count[base_block] == -1:
+                for block_id in range(block_count):
+                    if block_i_count[block_id] != -1:
+                        base_block = block_id
+                        block_id_increment = base_block
+                        break
+                
+                if block_i_count[base_block] == -1:
+                    break
+
+            base_key = encoding.encode_str(f"tmp/{base_block}/{block_i_count[base_block]}/")
             iter.seek(base_key)
             k = iter.key()
             k_value = iter.value()
 
-            # print(iter.key(), iter.value())
-            # print(block_i_count)
+            print("base_block:", base_block, "base_key:", iter.key(), "base_value:", iter.value())
+            print("pointers:", block_i_count)
             
-            block_id_increment = 0
+            
             for block_id in range(block_count):
                 # for each block, start at first key and iterate through all other 99 keys
                 # check if block is complete, if so, skip it
@@ -125,13 +137,17 @@ class Index:
                 iter.seek(block_key)
                 block_k_value = iter.value()
                 
-                # print("block", block_id, "key", block_key, "value", block_k_value)
+                print("block_no", block_id, "block_key:", block_key, "block_value", block_k_value)
                 if block_k_value < k_value:
                     k = iter.key()
                     k_value = block_k_value
                     block_id_increment = block_id
 
+                    print("will update pointer:", block_id_increment)
+
+
             block_i_count[block_id_increment] += 1
+            print("updated pointers:", block_i_count)
 
             # if block is complete, set to -1
             if block_i_count[block_id_increment] == 100:
@@ -139,7 +155,7 @@ class Index:
 
                 # if block is complete, use another block as the new base key 
                 found_new_block = 0
-                for i in range(block_count + 1):
+                for i in range(block_count):
                     if block_i_count[i] != -1:
                         base_block = block_id_increment
                         found_new_block = 1
@@ -152,15 +168,21 @@ class Index:
             else:
                 # otherwise, set the new base key to be from the block that we inserted from
                 base_block = block_id_increment
+
+
             # found the smallest key between all pointers, insert into new db, -> str/doc_id
             new_key = encoding.encode_str(f"{self.id}/{key_count}")
             decoded_doc_id = encoding.decode_str(k).split("/")[3]
             encoded_doc_id = encoding.encode_str(decoded_doc_id)
             encoded_data_type = encoded_data_type = encoding.encode_int(1) # encode id for str is 1
             
-            # print("value:", encoding.decode_this(int, k_value))
+            print("INSERTING INTO DB:", encoding.decode_this(int, k_value))
+            print("KEY:", new_key, "VALUE:", k_value)
             self.collection[new_key] = encoded_data_type + encoded_doc_id
             key_count += 1
+            print("------------------")
+            print("------------------")
+            
 
 
     def get_index(self, name: str):

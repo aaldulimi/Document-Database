@@ -102,6 +102,7 @@ class Collection:
                     wb[encoded_key] = encoded_value
                 else:
                     self.collection[encoded_key] = encoded_value
+                    print(encoded_key, "->", encoded_value)
 
         self._delete_old_logs()
         return doc_id
@@ -347,7 +348,8 @@ class Collection:
     def create_index(self, name: str, field: str):
         index_id = 0
         # check if index already exists
-        with open(self.path + "/meta.json", "r") as f:
+        meta_file = self.path + "/meta.json"
+        with open(meta_file, "r") as f:
             index_data = json.load(f)
 
         for index in index_data:
@@ -364,7 +366,7 @@ class Collection:
         # update meta file once index fully created
         index_data.append(index_spec)
         with open(self.path + "/meta.json", "w") as f:
-            json.dump(index_data)
+            json.dump(index_data, f, indent=4)
 
         return index
 
