@@ -1,221 +1,189 @@
-# from typing import Optional
-# import tantivy
-# import json
-# from pathlib import Path
-# import rockydb.encoding as encoding
-# from rocksdict import ReadOptions, Rdict
+import rockydb.encoding as encoding
+from rocksdict import ReadOptions
 
 
-# class Index:
-#     def __init__(
-#         self,
-#         db_path: str,
-#         collection: Rdict,
-#         collection_name: str,
-#         name: str,
-#         fields: Optional[list] = None,
-#         encoding_types: dict = None,
-#     ):
+class Index:
+    def __init__(
+        self, collection, collection_name: str, name: str, index_id: int, field: str
+    ):
+        self.collection = collection
+        self.name = name
+        self.field = field
+        self.id = index_id
+        self.collection_name = collection_name
 
-#         self.name = name
-#         self.fields = fields
-#         self.db_path = db_path
-#         self.collection = collection
-#         self.collection_name = collection_name
-#         self.encoding_types = encoding_types
+    def _iter_default_db(self):
+        key = encoding.encode_str(self.collection_name + "/0/0/")
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
 
-#     def _decode_value(self, value: bytes):
-#         if not value:
-#             return None
+        if not iter.key():
+            return
 
-#         decoded_data_type = self.encoding_types[value[0]]
-#         decoded_value = encoding.decode_this(decoded_data_type, value[1:])
+        while iter.valid():
+            encoded_key = iter.key()
+            encoded_value = iter.value()
+            decoded_key = encoding.decode_str(encoded_key).split("/")
 
-#         return decoded_value
+            if decoded_key[0] != self.collection_name:
+                break
 
-#     def _get(self, key: bytes):
-#         value = self.collection[key]
-#         return self._decode_value(value)
+            if decoded_key[4] == self.field:
+                # returns (doc_id, bytes)
+                yield (decoded_key[3], encoded_value)
 
-#     def get(self, id: str):
-#         document = {}
+            iter.next()
 
-#         key = encoding.encode_str(self.collection_name + "/" + id)
-#         iter = self.collection.iter(ReadOptions(raw_mode=True))
-#         iter.seek(key)
+    def create(self):
+        # implement some sort algo that doesn't require all the data to be in memory
+        # for now, brute force it; read 100 rows, insert in dict and sort, insert into dummy db
+        i = 0
+        block_id = 0
 
-#         if not iter.key():
-#             return {}
+        # tmp/block_id/order_no/doc_id -> datatype_id/value
+        block = {}
+        for k, v in self._iter_default_db():
+            tmp_key = f"{block_id}/{k}"
+            block[tmp_key] = v
+            i += 1
 
-#         while iter.valid():
-#             encoded_key = iter.key()
-#             encoded_value = iter.value()
+            if i == 100:
+                block_sorted = dict(sorted(block.items(), key=lambda item: item[1]))
+                block_rename = self._rename_block_keys(block_sorted)
+                self._insert_tmp_kv(block_rename)
+                block_id += 1
+                i = 0
+                block = {}
 
-#             decoded_key = encoding.decode_str(encoded_key).split("/")
-#             column = decoded_key[2]
-#             document[column] = self._decode_value(encoded_value)
+        # add remaining kv
+        if block:
+            block_sorted = dict(sorted(block.items(), key=lambda item: item[1]))
+            block_renamed = self._rename_block_keys(block_sorted)
+            self._insert_tmp_kv(block_renamed)
+            block_id += 1
 
-#             iter.next()
+        # now merge sort all the blocks together
+        self._merge_blocks(block_id)
 
-#         if not document:
-#             return None
+        index_specs = {"name": self.name, "field": self.field, "id": self.id}
+        return index_specs
 
-#         document["_id"] = id
-#         return document
+    def _rename_block_keys(self, block: dict):
+        result = {}
+        i = 0
 
-#     def _create_dir(self, dir_path: str, with_meta: bool = False):
-#         if Path(dir_path).is_dir():
-#             return False
+        for key, value in block.items():
+            # current key: str block_id/doc_id, need to be tmp/block_id/order_no/doc_id
+            split_key = key.split("/")
+            new_key = f"tmp/{split_key[0]}/{i}/{split_key[1]}"
 
-#         # make directory
-#         db_path = Path(dir_path)
-#         db_path.mkdir(parents=True, exist_ok=True)
+            result[new_key] = value
+            i += 1
 
-#         # make meta file
-#         if with_meta:
-#             with open(dir_path + "/meta.json", "w") as f:
-#                 json.dump([], f, indent=4)
+        return result
 
-#         return True
+    def _insert_tmp_kv(self, kv_pairs: dict):
+        # insert all blocks of sorted kv pairs back into db
+        for k, v in kv_pairs.items():
+            k = encoding.encode_str(k)
+            self.collection[k] = v
 
-#     def _delete_old_logs(self):
-#         database_path = Path(self.db_path)
-#         database_files = list(database_path.iterdir())
+    def _merge_blocks(self, block_count: int):
+        # merge all blocks together, have pointers to start of blocks
+        # take first key from each block, compare, insert smallest into new db
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
 
-#         for filename in database_files:
-#             if filename.name[:7] == "LOG.old":
-#                 filename.unlink()
+        key_count = 0
+        base_block = 0
 
-#     def _iterate_keys(self):
-#         for key in self.collection.keys():
-#             yield key
+        # keep track of all pointer positions
+        block_i_count = [0 for _ in range(block_count)]
+        block_id_increment = 0
 
-#         self._delete_old_logs()
+        while 1:
+            # make sure base block is not complete
+            if block_i_count[base_block] <= -1:
+                for block_id in range(block_count):
+                    if block_i_count[block_id] != -1:
+                        base_block = block_id
+                        block_id_increment = base_block
+                        break
 
-#     def _add_index(self, index_specs: dict):
-#         meta_file = self.db_path + "/full_text/meta.json"
+                if block_i_count[base_block] <= -1:
+                    break
 
-#         with open(meta_file) as f:
-#             index_data = json.load(f)
+            base_key = encoding.encode_str(
+                f"tmp/{base_block}/{block_i_count[base_block]}/"
+            )
+            iter.seek(base_key)
+            k = iter.key()
+            k_value = iter.value()
 
-#         index_data.append(index_specs)
+            for block_id in range(block_count):
+                # for each block, start at first key and iterate through all other 99 keys
+                # check if block is complete, if so, skip it
+                if block_i_count[block_id] <= -1:
+                    continue
 
-#         with open(meta_file, "w") as f:
-#             json.dump(index_data, f, indent=4)
+                block_key = encoding.encode_str(
+                    f"tmp/{block_id}/{block_i_count[block_id]}/"
+                )
+                iter.seek(block_key)
+                block_k_value = iter.value()
+                block_key = iter.key()
 
-#     def _check_index_exists(self, index_name: str):
-#         self._create_dir(self.db_path + "/full_text", with_meta=True)
+                # iter.seek() will go to the next key if the key doesn't exist, however we want to skip the block if the key doesn't exist
+                should_be_key = f"tmp/{block_id}/{block_i_count[block_id]}"
+                if (
+                    encoding.decode_str(block_key)[: len(should_be_key)]
+                    != should_be_key
+                ):
+                    block_i_count[block_id] = -2
+                    continue
 
-#         if Path(self.db_path + "/full_text/" + index_name).is_dir():
-#             return True
+                # this should be fixed in earlier stages, set None to 0
+                if block_k_value is None:
+                    continue
 
-#         return False
+                # if block value is shorter than the base value, then insert that instead
+                if block_k_value < k_value:
+                    k = block_key
+                    k_value = block_k_value
+                    block_id_increment = block_id
 
-#     def get_index(self, index_name: str, with_schema: bool = True):
-#         fetched_schema = []
-#         schema_builder = tantivy.SchemaBuilder()
-#         schema_builder.add_text_field("_id", stored=True)
+            # increment pointer for the block we just go the value from
+            block_i_count[block_id_increment] += 1
 
-#         with open(self.db_path + "/full_text/meta.json") as f:
-#             index_data = json.load(f)
+            if block_i_count[block_id_increment] != -1:
+                # found the smallest key between all pointers, insert into new db,
+                # index_id/order_no -> str/doc_id
+                new_key = encoding.encode_str(f"{self.id}/{key_count}")
+                decoded_doc_id = encoding.decode_str(k).split("/")[3]
+                encoded_doc_id = encoding.encode_str(decoded_doc_id)
+                encoded_data_type = encoded_data_type = encoding.encode_int(1)  # encode id for str is 1
+                
+                self.collection[new_key] = encoded_data_type + encoded_doc_id
+                key_count += 1
 
-#         for index in index_data:
-#             if index["name"] == index_name:
-#                 for field in index["schema"]:
-#                     if field != "_id":
-#                         schema_builder.add_text_field(field, stored=False)
+            # if block is complete, set to -1
+            if block_i_count[block_id_increment] == 100:
+                block_i_count[block_id_increment] = -1
 
-#                 if with_schema:
-#                     fetched_schema = index["schema"]
+                # if block is complete, use another block as the new base key
+                found_new_block = 0
+                for i in range(block_count):
+                    if block_i_count[i] != -1:
+                        base_block = block_id_increment
+                        found_new_block = 1
+                        break
 
-#                 index_path = index["path"]
+                if not found_new_block:
+                    # we have iterated through all blocks, no new blocks have been found all keys have been inserted in order
+                    break
 
-#         # if not found_index: return None
-#         schema = schema_builder.build()
-#         index = tantivy.Index(schema, path=index_path)
+            else:
+                # otherwise, set the new base key to be from the block that we inserted from
+                base_block = block_id_increment
 
-#         if with_schema:
-#             return index, fetched_schema
-
-#         return index
-
-#     def create(self, batch: bool = True):
-#         if self._check_index_exists(self.name):
-#             return self.get_index(self.name)
-
-#         if not self.fields:
-#             print(
-#                 "Specify fields to index using the fields parameter i.e. create(name, fields=[])"
-#             )
-#             return None
-
-#         index_path = self.db_path + "/full_text/" + self.name
-
-#         index_specs = {"name": self.name, "schema": ["_id"], "path": index_path}
-
-#         schema_builder = tantivy.SchemaBuilder()
-#         schema_builder.add_text_field("_id", stored=True)
-
-#         for field in self.fields:
-#             schema_builder.add_text_field(field, stored=False)
-#             index_specs["schema"].append(field)
-
-#         schema = schema_builder.build()
-
-#         self._create_dir(index_path)
-#         self._add_index(index_specs)
-
-#         index = tantivy.Index(schema, path=index_path)
-#         writer = index.writer()
-
-#         current_doc_id = ""
-#         current_doc = {}
-
-#         for key in self._iterate_keys():
-#             decoded_key = encoding.decode_str(key).split("/")
-
-#             doc_id = decoded_key[1]
-#             key_column = decoded_key[2]
-
-#             if doc_id != current_doc_id:
-#                 if current_doc:
-#                     # append doc to index
-#                     current_doc["_id"] = [current_doc_id]
-#                     writer.add_document(tantivy.Document(**current_doc))
-#                     print(current_doc)
-#                     if not batch:
-#                         writer.commit()
-
-#                 current_doc = {}
-#                 current_doc_id = doc_id
-
-#             if key_column in self.fields:
-#                 key_value = self._get(key)
-
-#                 if key_value:
-#                     current_doc[key_column] = [key_value]
-
-#         if batch:
-#             writer.commit()
-
-#         return index
-
-#     def search(self, query: str, fields=None, limit: int = 1):
-#         results = []
-
-#         index, schema_fields = self.get_index(self.name, True)
-#         if not fields:
-#             fields = schema_fields
-
-#         index.reload()
-#         searcher = index.searcher()
-#         parsed_query = index.parse_query(query, fields)
-#         text_results = searcher.search(parsed_query, limit).hits
-
-#         for result in text_results:
-#             score, address = result
-#             document_id = searcher.doc(address)["_id"][0]
-
-#             results.append(self.get(document_id))
-
-#         return results
+    def binary_search(self, value):
+        pass
