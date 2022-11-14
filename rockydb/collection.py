@@ -102,7 +102,7 @@ class Collection:
                     wb[encoded_key] = encoded_value
                 else:
                     self.collection[encoded_key] = encoded_value
-                    print(encoded_key, "->", encoded_value)
+                    # print(f"{encoded_key} -> {encoding.decode_int(encoded_value)}")
 
         self._delete_old_logs()
         return doc_id

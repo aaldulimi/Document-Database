@@ -43,7 +43,7 @@ class Index:
         # tmp/block_id/order_no/doc_id -> datatype_id/value
         block = {}
         for k, v in self._iter_default_db():
-            
+            # print(encoding.decode_int(v))
             tmp_key = f"{block_id}/{k}"
             block[tmp_key] = v
             i += 1
@@ -54,6 +54,7 @@ class Index:
                 self._insert_tmp_kv(block_rename)
                 block_id += 1
                 i = 0
+                # print(len(block))
                 block = {}
 
                 # print("FULL DICT", block_id)
@@ -65,11 +66,13 @@ class Index:
             self._insert_tmp_kv(block_renamed)
             block_id += 1
             # print("PARTIAL DICT")
-        
+            # print(len(block))
+
+
         # now merge sort all the blocks together
         self._merge_blocks(block_id)
 
-        index_specs = {"name": self.name, "field": self.field}
+        index_specs = {"name": self.name, "field": self.field, "id": self.id}
         return index_specs
 
     def _rename_block_keys(self, block: dict):
@@ -92,7 +95,7 @@ class Index:
         for k, v in kv_pairs.items():
             k = encoding.encode_str(k)
             self.collection[k] = v
-
+            
             # print(k, "->", encoding.decode_this(int, v))
 
     def _merge_blocks(self, block_count: int):
@@ -108,14 +111,14 @@ class Index:
         block_id_increment = 0
 
         while 1:
-            if block_i_count[base_block] == -1:
+            if block_i_count[base_block] <= -1:
                 for block_id in range(block_count):
                     if block_i_count[block_id] != -1:
                         base_block = block_id
                         block_id_increment = base_block
                         break
                 
-                if block_i_count[base_block] == -1:
+                if block_i_count[base_block] <= -1:
                     break
 
             base_key = encoding.encode_str(f"tmp/{base_block}/{block_i_count[base_block]}/")
@@ -123,23 +126,34 @@ class Index:
             k = iter.key()
             k_value = iter.value()
 
-            print("base_block:", base_block, "base_key:", iter.key(), "base_value:", iter.value())
+
+            print("base_block:", base_block, "base_key:", iter.key(), "base_value:", encoding.decode_int(iter.value()[1:]))
             print("pointers:", block_i_count)
             
             
             for block_id in range(block_count):
                 # for each block, start at first key and iterate through all other 99 keys
                 # check if block is complete, if so, skip it
-                if block_i_count[block_id] == -1:
+                if block_i_count[block_id] <= -1:
                     continue
 
                 block_key = encoding.encode_str(f"tmp/{block_id}/{block_i_count[block_id]}/")
                 iter.seek(block_key)
                 block_k_value = iter.value()
+                block_key = iter.key()
                 
-                print("block_no", block_id, "block_key:", block_key, "block_value", block_k_value)
+                # iter.seek() will go to the next key if the key doesn't exist, however we want to skip the block if the key doesn't exist
+                should_be_key = f"tmp/{block_id}/{block_i_count[block_id]}"
+                if encoding.decode_str(block_key)[:len(should_be_key)] != should_be_key:
+                    block_i_count[block_id] = -2
+                    continue
+                
+                # this should be fixed in earlier stages, set None to 0
+                if block_k_value is None:
+                    continue
+                
+                print("block_no", block_id, "block_key:", iter.key(), "block_value", encoding.decode_int(block_k_value[1:]))
                 if block_k_value < k_value:
-                    k = iter.key()
                     k_value = block_k_value
                     block_id_increment = block_id
 
@@ -148,6 +162,22 @@ class Index:
 
             block_i_count[block_id_increment] += 1
             print("updated pointers:", block_i_count)
+
+            if block_i_count[block_id_increment] != -1:
+                # found the smallest key between all pointers, insert into new db, -> str/doc_id
+                new_key = encoding.encode_str(f"{self.id}/{key_count}")
+                decoded_doc_id = encoding.decode_str(k).split("/")[3]
+                encoded_doc_id = encoding.encode_str(decoded_doc_id)
+                encoded_data_type = encoded_data_type = encoding.encode_int(1) # encode id for str is 1
+                
+                # print("INSERTING INTO DB:", encoding.decode_this(int, k_value))
+                print("KEY:", new_key, "VALUE:", encoding.decode_this(int, k_value[1:]))
+                self.collection[new_key] = encoded_data_type + encoded_doc_id
+                key_count += 1
+                print("------------------")
+                print("------------------")
+
+                # time.sleep(1)
 
             # if block is complete, set to -1
             if block_i_count[block_id_increment] == 100:
@@ -168,20 +198,6 @@ class Index:
             else:
                 # otherwise, set the new base key to be from the block that we inserted from
                 base_block = block_id_increment
-
-
-            # found the smallest key between all pointers, insert into new db, -> str/doc_id
-            new_key = encoding.encode_str(f"{self.id}/{key_count}")
-            decoded_doc_id = encoding.decode_str(k).split("/")[3]
-            encoded_doc_id = encoding.encode_str(decoded_doc_id)
-            encoded_data_type = encoded_data_type = encoding.encode_int(1) # encode id for str is 1
-            
-            print("INSERTING INTO DB:", encoding.decode_this(int, k_value))
-            print("KEY:", new_key, "VALUE:", k_value)
-            self.collection[new_key] = encoded_data_type + encoded_doc_id
-            key_count += 1
-            print("------------------")
-            print("------------------")
             
 
 
