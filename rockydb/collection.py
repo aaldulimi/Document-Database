@@ -320,6 +320,18 @@ class Collection:
     def delete_batch(self, id_list: list):
         for id in id_list:
             self.delete(id)
+    
+    def _delete_tmp_blocks(self):
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(b"tmp/")
+
+        while iter.valid():
+            k = iter.key()
+            if k[:3] != b"tmp":
+                break
+
+            self.delete(encoding.decode_str(k))
+            iter.next()
 
     def get(self, id: str) -> dict:
         document = {}
@@ -363,13 +375,19 @@ class Collection:
         index = Index(self.collection, self.name, name, index_id + 1, field)
         index_spec = index.create()
 
+        # now delete all tmp blocks that were saved in db
+        self._delete_tmp_blocks()
+
         # update meta file once index fully created
         index_data.append(index_spec)
         with open(self.path + "/meta.json", "w") as f:
             json.dump(index_data, f, indent=4)
 
         return index
-
+    
+    def get_index(self, name: str):
+        pass
+    
     def delete_index(self, name: str):
         pass
 
