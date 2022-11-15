@@ -11,6 +11,7 @@ class Index:
         self.field = field
         self.id = index_id
         self.collection_name = collection_name
+        self.key_count = 0
 
     def _iter_default_db(self):
         key = encoding.encode_str(self.collection_name + "/0/0/")
@@ -93,7 +94,6 @@ class Index:
         # take first key from each block, compare, insert smallest into new db
         iter = self.collection.iter(ReadOptions(raw_mode=True))
 
-        key_count = 0
         base_block = 0
 
         # keep track of all pointer positions
@@ -157,13 +157,13 @@ class Index:
             if block_i_count[block_id_increment] != -1:
                 # found the smallest key between all pointers, insert into new db,
                 # index_id/order_no -> str/doc_id
-                new_key = encoding.encode_str(f"{self.id}/{key_count}")
+                new_key = encoding.encode_str(f"{self.id}/{self.key_count}")
                 decoded_doc_id = encoding.decode_str(k).split("/")[3]
                 encoded_doc_id = encoding.encode_str(decoded_doc_id)
                 encoded_data_type = encoded_data_type = encoding.encode_int(1)  # encode id for str is 1
                 
                 self.collection[new_key] = encoded_data_type + encoded_doc_id
-                key_count += 1
+                self.key_count += 1
 
             # if block is complete, set to -1
             if block_i_count[block_id_increment] == 100:
@@ -184,6 +184,119 @@ class Index:
             else:
                 # otherwise, set the new base key to be from the block that we inserted from
                 base_block = block_id_increment
+    
+    def find(self, query: dict, limit: int = 1):
+        results = []
+        if not query or not limit:
+            return results
 
-    def binary_search(self, value):
-        pass
+        lt = {}
+        lte = {}
+        gt = {}
+        gte = {}
+        eq = {}
+        # need to iterate over keys and values once only
+        for spec, v in query.items():
+            q_loc = spec.find("?")
+
+            if q_loc != -1:
+                query_type = spec[q_loc + 1 :]
+
+                # can only be of one type below
+                if query_type == "lte":
+                    lte[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "gte":
+                    gte[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "lt":
+                    lt[spec[:q_loc]] = v
+                    continue
+
+                if query_type == "gt":
+                    gt[spec[:q_loc]] = v
+                    continue
+
+                print(f"Unkown query type {query_type}")
+                return results
+
+            else:
+                # add to equals dict
+                eq[spec] = v
+
+        count = 0
+        read_opt = ReadOptions(raw_mode=True)
+        read_opt.fill_cache(False)
+        read_opt.set_readahead_size(8_388_608)
+        read_opt.set_tailing(True)
+        read_opt.set_pin_data(True)
+
+        iter = self.collection.iter(read_opt)
+
+        min_index_key = encoding.encode_str(f"{self.id}/0")
+        min_doc_id = encoding.decode_str(self.collection[min_index_key][1:])
+        min_db_key = encoding.encode_str(f"{self.collection_name}/0/0/{min_doc_id}/{self.field}")
+        min_vaue = self.collection[min_db_key]
+
+        last_key = f"{self.id}/{self.key_count}"
+        iter.seek(encoding.encode_str(first_key))
+
+    
+
+
+    def _get_value_from_index_key(self, key: str) -> bytes:
+        index_key = encoding.encode_str(key)
+        index_value = self.collection[index_key]
+        doc_id = encoding.decode_str(index_value[1:])
+
+        db_key = encoding.encode_str(f"{self.collection_name}/0/0/{doc_id}/{self.field}")
+        db_value = self.collection[db_key]
+
+        return db_value
+
+    def get(self, id: str) -> dict:
+        document = {}
+
+        for encoded_key in self._id_rows(id):
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+
+            column = decoded_key[4]
+            document[column] = self._get(encoded_key)
+
+        if not document:
+            return None
+
+        document["_id"] = id
+        return document
+    
+    def _id_rows(self, id: str):
+        key = encoding.encode_str(self.collection_name + "/0/0/" + id)
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
+
+        if not iter.key():
+            return {}
+
+        while iter.valid():
+            encoded_key = iter.key()
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+            if decoded_key[3] != id:
+                break
+
+            yield encoded_key
+            iter.next()
+       
+
+    def _decode_value(self, value: bytes):
+        if not value:
+            return None
+
+        decoded_value = encoding.decode_this(str, value[1:])
+        return decoded_value
+
+    def _get(self, key: bytes):
+        value = self.collection[key]
+        return self._decode_value(value)
+    
