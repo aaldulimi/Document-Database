@@ -34,6 +34,29 @@ class Index:
                 yield (decoded_key[3], encoded_value)
 
             iter.next()
+    
+    def _iter_index_db(self, limit: int):
+        # returns doc_id
+        key = encoding.encode_str(f"{self.id}/0")
+        iter = self.collection.iter(ReadOptions(raw_mode=True))
+        iter.seek(key)
+
+        if not iter.key():
+            return
+
+        while iter.valid():
+            encoded_key = iter.key()
+            decoded_key = encoding.decode_str(encoded_key).split("/")
+
+            if decoded_key[1] > limit:
+                break
+            
+            encoded_value = iter.value()
+            doc_id = encoding.decode_str(encoded_value[1:])
+
+            yield doc_id
+
+            iter.next()
 
     def create(self):
         # implement some sort algo that doesn't require all the data to be in memory
@@ -185,16 +208,12 @@ class Index:
                 # otherwise, set the new base key to be from the block that we inserted from
                 base_block = block_id_increment
     
-    def find(self, query: dict, limit: int = 1):
-        results = []
-        if not query or not limit:
-            return results
-
-        lt = {}
-        lte = {}
-        gt = {}
-        gte = {}
-        eq = {}
+    def _parse_query(query: dict):
+        lt = 0
+        lte = 0
+        gt = 0
+        gte = 0
+        eq = 0
         # need to iterate over keys and values once only
         for spec, v in query.items():
             q_loc = spec.find("?")
@@ -204,46 +223,44 @@ class Index:
 
                 # can only be of one type below
                 if query_type == "lte":
-                    lte[spec[:q_loc]] = v
+                    lte = v
                     continue
 
                 if query_type == "gte":
-                    gte[spec[:q_loc]] = v
+                    gte = v
                     continue
 
                 if query_type == "lt":
-                    lt[spec[:q_loc]] = v
+                    lt = v
                     continue
 
                 if query_type == "gt":
-                    gt[spec[:q_loc]] = v
+                    gt = v
                     continue
-
-                print(f"Unkown query type {query_type}")
-                return results
 
             else:
                 # add to equals dict
                 eq[spec] = v
 
-        count = 0
-        read_opt = ReadOptions(raw_mode=True)
-        read_opt.fill_cache(False)
-        read_opt.set_readahead_size(8_388_608)
-        read_opt.set_tailing(True)
-        read_opt.set_pin_data(True)
+        return (lt, lte, gt, gte, eq)
 
-        iter = self.collection.iter(read_opt)
 
-        min_index_key = encoding.encode_str(f"{self.id}/0")
-        min_doc_id = encoding.decode_str(self.collection[min_index_key][1:])
-        min_db_key = encoding.encode_str(f"{self.collection_name}/0/0/{min_doc_id}/{self.field}")
-        min_vaue = self.collection[min_db_key]
+    def find(self, query: dict, limit: int = 1):
+        results = []
+        if not query or not limit:
+            return results
 
-        last_key = f"{self.id}/{self.key_count}"
-        iter.seek(encoding.encode_str(first_key))
+        lt, lte, gt, gte, eq = self._parse_query(query)
 
-    
+        # if query is less than, e.g. { "age?lte":  30 }
+        if lte:
+            index_id = self.last_occurance(lte)
+            for doc_id in self._iter_index_db(index_id):
+                results.append(doc_id)
+
+            return results 
+        
+
 
 
     def _get_value_from_index_key(self, key: str) -> bytes:
@@ -255,6 +272,30 @@ class Index:
         db_value = self.collection[db_key]
 
         return db_value
+
+
+    def last_occurance(self, target: int) -> int:
+        # for lte type search
+        min = 0 
+        max = self.key_count
+
+        while (min <= max):
+            mid = (min + max) // 2
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")
+            mid_value_plus_one = self._get_value_from_index_key(f"{self.id}/{mid + 1}")
+        
+            if ((mid == self.key_count) or (mid_value_plus_one > target)) and (mid_value == target):
+                return mid
+
+            elif (target < mid_value):
+                max = mid - 1
+
+            else:
+                min = mid + 1
+
+        return -1
+
+
 
     def get(self, id: str) -> dict:
         document = {}
