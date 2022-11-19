@@ -1,5 +1,6 @@
 from rockydb import RockyDB
 
+
 class TestQuery:
     def test_query(self):
         db = RockyDB("database/")

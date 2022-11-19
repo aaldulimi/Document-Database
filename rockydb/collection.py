@@ -320,7 +320,7 @@ class Collection:
     def delete_batch(self, id_list: list):
         for id in id_list:
             self.delete(id)
-    
+
     def _delete_tmp_blocks(self):
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(b"tmp/")
@@ -384,10 +384,10 @@ class Collection:
             json.dump(index_data, f, indent=4)
 
         return index
-    
+
     def get_index(self, name: str):
         pass
-    
+
     def delete_index(self, name: str):
         pass
 
