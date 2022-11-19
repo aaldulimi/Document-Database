@@ -253,8 +253,7 @@ class Index:
 
         # if query is less than, e.g. { "age?lte":  30 }
         if lte:
-            index_id = self.last_occurance(lte)
-            lte_res = []
+            index_id = self.less_than_equals(lte)
             for doc_id in self._iter_index_db(start=0, limit=index_id):
                 results.append(doc_id)
             
@@ -262,14 +261,29 @@ class Index:
 
         
         if gte:
-            index_id = self.first_occurance(gte)
+            index_id = self.greater_than_equals(gte)
             for doc_id in self._iter_index_db(start=index_id, limit=None):
                 results.append(doc_id)
 
             return results
         
+        if lt:
+            index_id = self.less_than(lt)
+            for doc_id in self._iter_index_db(start=0, limit=index_id):
+                results.append(doc_id)
+            
+            return results
+        
+        if gt:
+            index_id = self.greater_than(gt)
+            for doc_id in self._iter_index_db(start=index_id, limit=None):
+                results.append(doc_id)
+        
+            return results
 
-
+    
+        return results
+        
 
     def _get_value_from_index_key(self, key: str) -> bytes:
         index_key = encoding.encode_str(key)
@@ -282,8 +296,8 @@ class Index:
         return db_value
 
 
-    def last_occurance(self, target: bytes) -> int:
-        # for lte type search
+    def less_than_equals(self, target: bytes) -> int:
+        # for lte type search, also know as last occurance 
         min = 0 
         max = self.key_count
 
@@ -305,8 +319,8 @@ class Index:
             return min 
         return max
 
-    def first_occurance(self, target: bytes) -> int:
-        # for gte type search
+    def greater_than_equals(self, target: bytes) -> int:
+        # for gte type search, also known as first occurance
         min = 0 
         max = self.key_count
         
@@ -325,6 +339,49 @@ class Index:
                 max = mid
 
         return min
+    
+    def less_than(self, target: bytes) -> int:
+        # for lt type search
+        min = 0 
+        max = self.key_count
+        
+        while (min < max):
+            mid = (min + max) // 2
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")[1:]
+            mid_value_plus_one = self._get_value_from_index_key(f"{self.id}/{mid + 1}")[1:]
+
+            if ((mid == self.key_count) or (mid_value_plus_one >= target)) and (mid_value < target):
+                return mid
+            
+            elif (mid_value >= target):
+                max = mid -1
+
+            else:
+                min = mid + 1
+    
+        return min
+        
+    def greater_than(self, target: bytes) -> int:
+        # for gt type search 
+        min = 0 
+        max = self.key_count
+        
+        while (min < max):
+            mid = (min + max) // 2
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")[1:]
+            mid_value_minus_one = self._get_value_from_index_key(f"{self.id}/{mid - 1}")[1:]
+
+            if(mid_value_minus_one <= target) and (mid_value > target):
+                return mid
+            
+            elif (mid_value <= target):
+                min = mid + 1
+
+            else:
+                max = mid
+    
+        return min
+
 
     def get(self, id: str) -> dict:
         document = {}
