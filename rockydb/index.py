@@ -293,7 +293,9 @@ class Index:
             else:
                 min = mid + 1
 
-        return -1
+        if min < max:
+            return min 
+        return max
 
 
 
