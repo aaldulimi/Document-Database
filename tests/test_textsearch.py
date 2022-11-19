@@ -1,5 +1,5 @@
-# from rockydb import RockyDB
-# from tests.load import load
+from rockydb import RockyDB
+from tests.load import load
 
 
 # class TestTextSearch:
