@@ -37,29 +37,25 @@ class Index:
     
     def _iter_index_db(self, start: int = 0, limit: int = None):
         # returns doc_id
-        if not limit:
-            limit = self.key_count
+        if limit is None:
+            limit = self.key_count - 1
 
-        key = encoding.encode_str(f"{self.id}/{start}")
-        iter = self.collection.iter(ReadOptions(raw_mode=True))
-        iter.seek(key)
-
-        if not iter.key():
-            return
-
-        while iter.valid():
-            encoded_key = iter.key()
+    
+        while 1: 
+            encoded_key = encoding.encode_str(f"{self.id}/{start}")
             decoded_key = encoding.decode_str(encoded_key).split("/")
 
-            if decoded_key[1] > limit:
+            # make sure its not over the limit, to prevent key not found errors
+            if int(decoded_key[1]) > limit:
                 break
-            
-            encoded_value = iter.value()
-            doc_id = encoding.decode_str(encoded_value[1:])
 
+            encoded_value = self.collection[encoded_key]
+            if not encoded_value: return 
+
+            doc_id = encoding.decode_str(encoded_value[1:])
             yield doc_id
 
-            iter.next()
+            start += 1
 
     def create(self):
         # implement some sort algo that doesn't require all the data to be in memory
@@ -230,15 +226,15 @@ class Index:
                     continue
 
                 if query_type == "gte":
-                    gte = v
+                    gte = encoding.encode_int(v)
                     continue
 
                 if query_type == "lt":
-                    lt = v
+                    lt = encoding.encode_int(v)
                     continue
 
                 if query_type == "gt":
-                    gt = v
+                    gt = encoding.encode_int(v)
                     continue
 
             else:
@@ -258,10 +254,12 @@ class Index:
         # if query is less than, e.g. { "age?lte":  30 }
         if lte:
             index_id = self.last_occurance(lte)
+            lte_res = []
             for doc_id in self._iter_index_db(start=0, limit=index_id):
                 results.append(doc_id)
+            
+            return results
 
-            return results 
         
         if gte:
             index_id = self.first_occurance(gte)
@@ -284,15 +282,15 @@ class Index:
         return db_value
 
 
-    def last_occurance(self, target: int) -> int:
+    def last_occurance(self, target: bytes) -> int:
         # for lte type search
         min = 0 
         max = self.key_count
 
         while (min <= max):
             mid = (min + max) // 2
-            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")
-            mid_value_plus_one = self._get_value_from_index_key(f"{self.id}/{mid + 1}")
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")[1:] # bytes of value
+            mid_value_plus_one = self._get_value_from_index_key(f"{self.id}/{mid + 1}")[1:] # bytes of value
         
             if ((mid == self.key_count) or (mid_value_plus_one > target)) and (mid_value == target):
                 return mid
@@ -307,15 +305,15 @@ class Index:
             return min 
         return max
 
-    def first_occurance(self, target: int) -> int:
+    def first_occurance(self, target: bytes) -> int:
         # for gte type search
         min = 0 
         max = self.key_count
         
         while (min < max):
             mid = (min + max) // 2
-            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")
-            mid_value_minus_one = self._get_value_from_index_key(f"{self.id}/{mid - 1}")
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")[1:]
+            mid_value_minus_one = self._get_value_from_index_key(f"{self.id}/{mid - 1}")[1:]
 
             if ((mid == self.key_count) or (mid_value_minus_one < target)) and (mid_value == target):
                 return mid

@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/Users/flyinshark/Desktop/RockyDB/')
 from rockydb import RockyDB
 
 # connect to db
@@ -38,6 +40,12 @@ articles.delete(doc_id)
 
 # query documents
 query = articles.find({"author": "Mihir Zaveri", "number": 5})
+
+# create an index
+number_index = articles.create_index(name="number_index", field="number")
+
+# query index 
+index_query = number_index.find({"number?lte": 10})
 
 # print results
 print(query)
