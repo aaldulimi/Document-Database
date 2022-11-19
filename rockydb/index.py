@@ -35,9 +35,12 @@ class Index:
 
             iter.next()
     
-    def _iter_index_db(self, limit: int):
+    def _iter_index_db(self, start: int = 0, limit: int = None):
         # returns doc_id
-        key = encoding.encode_str(f"{self.id}/0")
+        if not limit:
+            limit = self.key_count
+
+        key = encoding.encode_str(f"{self.id}/{start}")
         iter = self.collection.iter(ReadOptions(raw_mode=True))
         iter.seek(key)
 
@@ -208,7 +211,7 @@ class Index:
                 # otherwise, set the new base key to be from the block that we inserted from
                 base_block = block_id_increment
     
-    def _parse_query(query: dict):
+    def _parse_query(self, query: dict):
         lt = 0
         lte = 0
         gt = 0
@@ -223,7 +226,7 @@ class Index:
 
                 # can only be of one type below
                 if query_type == "lte":
-                    lte = v
+                    lte = encoding.encode_int(v)
                     continue
 
                 if query_type == "gte":
@@ -255,10 +258,17 @@ class Index:
         # if query is less than, e.g. { "age?lte":  30 }
         if lte:
             index_id = self.last_occurance(lte)
-            for doc_id in self._iter_index_db(index_id):
+            for doc_id in self._iter_index_db(start=0, limit=index_id):
                 results.append(doc_id)
 
             return results 
+        
+        if gte:
+            index_id = self.first_occurance(gte)
+            for doc_id in self._iter_index_db(start=index_id, limit=None):
+                results.append(doc_id)
+
+            return results
         
 
 
@@ -297,7 +307,26 @@ class Index:
             return min 
         return max
 
+    def first_occurance(self, target: int) -> int:
+        # for gte type search
+        min = 0 
+        max = self.key_count
+        
+        while (min < max):
+            mid = (min + max) // 2
+            mid_value = self._get_value_from_index_key(f"{self.id}/{mid}")
+            mid_value_minus_one = self._get_value_from_index_key(f"{self.id}/{mid - 1}")
 
+            if ((mid == self.key_count) or (mid_value_minus_one < target)) and (mid_value == target):
+                return mid
+
+            elif (target > mid_value):
+                min = mid + 1
+            
+            else:
+                max = mid
+
+        return min
 
     def get(self, id: str) -> dict:
         document = {}
