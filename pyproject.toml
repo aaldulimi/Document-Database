@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "RockyDB"
-version = "0.2.9.3"
+version = "0.2.10"
 description = "A NoSQL database."
 authors = ["Ahmed"]
 license = "Apache-2.0"
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.0",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
 ]
 packages = [
     { include = "rockydb" }
@@ -28,7 +29,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-rocksdict = "0.2.16"
+rocksdict = "0.3.2"
 fastapi = "^0.85.1"
 uvicorn = "^0.19.0"
 black = "^22.10.0"
@@ -36,6 +37,7 @@ pytest = "^7.2.0"
 lxml = "^4.9.1"
 Sphinx = "^5.3.0"
 furo = "^2022.9.29"
+
 
 [tool.poetry.dev-dependencies]
 
