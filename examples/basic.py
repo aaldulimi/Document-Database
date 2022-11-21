@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/flyinshark/Desktop/RockyDB/')
 from rockydb import RockyDB
 
 # connect to db

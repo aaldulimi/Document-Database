@@ -13,6 +13,7 @@ if __name__ == "__main__":
     db = RockyDB()
     news = db.collection("news")
 
+    # can insert objects
     doc_1 = Document(
         "Global Fallout From Rate Moves Won’t Stop the Fed",
         "Jeanna Smialek and Alan Rappeport",
@@ -36,6 +37,7 @@ if __name__ == "__main__":
         "a_number": 4,
     }
 
+    # can also insert dictionaries
     doc_id = news.insert(doc_3)
 
     document = news.get(doc_id)
