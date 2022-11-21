@@ -127,6 +127,55 @@ Example
 be empty if no documents matched the query.
 
 
+Indexes
+-----------------
+Create an index on a specific document field to speed up queries
+
+Create
+^^^^^^^^^
+Create the index 
+
+.. code:: python
+
+    create_index(name: str, field: str)
+
+**Parameters**
+
+**name** (required) - ``str``
+
+**field** (required) - ``str``
+
+Example 
+
+.. code:: python
+
+    posts.create_index("age_index", "age")
+
+**Returns** an ``Index`` object if creation was successful. Otherwise will return ``None``.
+
+
+Find
+^^^^^^^^^
+Query the index
+
+.. code:: python
+
+    find(query: dict, field: str)
+
+**Parameters**
+
+**name** (required) - ``str``
+
+**field** (required) - ``str``
+
+Example 
+
+.. code:: python
+
+    posts.create_index("age_index", "age")
+
+**Returns** an ``Index`` object if creation was successful. Otherwise will return ``None``.
+
 ..  
     Text Search
     ^^^^^^^^^^^^^^^^^

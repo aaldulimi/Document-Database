@@ -34,7 +34,7 @@ Currently under active development, however here is the feature list so far:
 - **Insert, get and delete documents**
 - **REST API**
 - **Query language**
-
+- **Indexes**
 
 Installation
 ------------
