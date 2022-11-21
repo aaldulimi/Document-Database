@@ -11,12 +11,7 @@ utilises rocksdb as a storage engine.
 
    self
    usage
-
-.. toctree::
-   :caption: API Reference:
-   :hidden:
-   
-   collection   
+ 
 
 .. toctree::
    :caption: Development:
