@@ -96,14 +96,14 @@ Returns documents that match a query
 
 .. code:: python
 
-    find(query: dict, limit: int = 10)
+    find(query: dict, limit: int = 1)
 
 **Parameters**
 
 **query** (required) - ``dict``
     - The query ``key`` corresponds to the document ``key`` and the query ``value`` corresponds to its ``value`` in the document.
 
-**limit** (optional) - ``int``, default is ``10``
+**limit** (optional) - ``int``, default is ``1``
 
 Example
 
@@ -114,7 +114,7 @@ Example
 The above query translates to ``("title" == "some value") AND ("year" == 2022)``. There is currently no support
 for ``OR`` type queries. Its currently being implemented.
 
-Can also search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and gte ``(greater-than equals)``.
+Can also search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and ``gte (greater-than equals)``.
 To do so, place a ``?`` after the ``key`` in the query, and type ``lt`` or any of the other options.
 
 Example 
@@ -160,21 +160,24 @@ Query the index
 
 .. code:: python
 
-    find(query: dict, field: str)
+    find(query: dict, limti: int = 1)
 
 **Parameters**
 
-**name** (required) - ``str``
+**query** (required) - ``dict``
+    - The query ``key`` corresponds to the document field that has been indexed and the query ``value`` corresponds to its ``value`` in the document.
 
-**field** (required) - ``str``
+**limit** (optional) - ``int``, default is ``1``
 
 Example 
 
 .. code:: python
 
-    posts.create_index("age_index", "age")
+    index.find({"age?lte": 30})
 
-**Returns** an ``Index`` object if creation was successful. Otherwise will return ``None``.
+Can search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and ``gte (greater-than equals)``.
+
+**Returns** a ``list`` of document ``_id`` s that match the query.
 
 ..  
     Text Search
