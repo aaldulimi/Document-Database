@@ -247,6 +247,7 @@ class Index:
 
     def find(self, query: dict, limit: int = 1):
         results = []
+        result_count = 0
         if not query or not limit:
             return results
 
@@ -258,12 +259,18 @@ class Index:
             for doc_id in self._iter_index_db(start=0, limit=index_id):
                 results.append(doc_id)
 
+                result_count += 1
+                if result_count == limit: break
+
             return results
 
         if gte:
             index_id = self.greater_than_equals(gte)
             for doc_id in self._iter_index_db(start=index_id, limit=None):
                 results.append(doc_id)
+
+                result_count += 1
+                if result_count == limit: break
 
             return results
 
@@ -272,12 +279,18 @@ class Index:
             for doc_id in self._iter_index_db(start=0, limit=index_id):
                 results.append(doc_id)
 
+                result_count += 1
+                if result_count == limit: break
+
             return results
 
         if gt:
             index_id = self.greater_than(gt)
             for doc_id in self._iter_index_db(start=index_id, limit=None):
                 results.append(doc_id)
+
+                result_count += 1
+                if result_count == limit: break
 
             return results
 

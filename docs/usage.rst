@@ -96,14 +96,14 @@ Returns documents that match a query
 
 .. code:: python
 
-    find(query: dict, limit: int = 10)
+    find(query: dict, limit: int = 1)
 
 **Parameters**
 
 **query** (required) - ``dict``
     - The query ``key`` corresponds to the document ``key`` and the query ``value`` corresponds to its ``value`` in the document.
 
-**limit** (optional) - ``int``, default is ``10``
+**limit** (optional) - ``int``, default is ``1``
 
 Example
 
@@ -114,7 +114,7 @@ Example
 The above query translates to ``("title" == "some value") AND ("year" == 2022)``. There is currently no support
 for ``OR`` type queries. Its currently being implemented.
 
-Can also search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and gte ``(greater-than equals)``.
+Can also search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and ``gte (greater-than equals)``.
 To do so, place a ``?`` after the ``key`` in the query, and type ``lt`` or any of the other options.
 
 Example 
@@ -126,6 +126,58 @@ Example
 **Returns** a ``list`` containing all the ``documents`` found. ``list`` will 
 be empty if no documents matched the query.
 
+
+Indexes
+-----------------
+Create an index on a specific document field to speed up queries
+
+Create
+^^^^^^^^^
+Create the index 
+
+.. code:: python
+
+    create_index(name: str, field: str)
+
+**Parameters**
+
+**name** (required) - ``str``
+
+**field** (required) - ``str``
+
+Example 
+
+.. code:: python
+
+    posts.create_index("age_index", "age")
+
+**Returns** an ``Index`` object if creation was successful. Otherwise will return ``None``.
+
+
+Find
+^^^^^^^^^
+Query the index
+
+.. code:: python
+
+    find(query: dict, limti: int = 1)
+
+**Parameters**
+
+**query** (required) - ``dict``
+    - The query ``key`` corresponds to the document field that has been indexed and the query ``value`` corresponds to its ``value`` in the document.
+
+**limit** (optional) - ``int``, default is ``1``
+
+Example 
+
+.. code:: python
+
+    index.find({"age?lte": 30})
+
+Can search for ``lt (less-than)``, ``lte (less-than equals)``, ``gt (greater-than)`` and ``gte (greater-than equals)``.
+
+**Returns** a ``list`` of document ``_id`` s that match the query.
 
 ..  
     Text Search
